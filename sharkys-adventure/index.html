@@ -1,0 +1,405 @@
+<html>
+<head>
+	<script src="http://ajax.googleapis.com/ajax/libs/jquery/2.1.1/jquery.min.js"></script>
+	<link href='http://fonts.googleapis.com/css?family=Arvo:400,700' rel='stylesheet' type='text/css'>
+	<style>
+		.noselect {
+	    -webkit-touch-callout: none;
+	    -webkit-user-select: none;
+	    -khtml-user-select: none;
+	    -moz-user-select: none;
+	    -ms-user-select: none;
+	    user-select: none;
+	    cursor: pointer;
+	}
+	</style>
+</head>
+<body style="margin:0; padding:0;" class="noselect">
+	<canvas id="gameCanvas" style="background-color:#0080A3;width:100%;height:100%">
+	</canvas>
+	<div class="title-screen" style="position:fixed;left:0;top:40%;right:0;bottom:0;color:orange;font-size:150px;text-align:center;font-family: 'Arvo', serif;font-weight:bold;-webkit-text-stroke: 3px white;text-shadow: 5px 5px black;">SHARKY'S ADVENTURE I</div>
+	
+	<div class="game-over" id="gameover" onclick="gameoverClick();" style="position: fixed; display:none;left:0;top:40%;right:0;bottom:0;">
+		<div class="game-over-text" style="color:orangered;font-size:200px;text-align:center;font-family: 'Arvo', serif;font-weight:bold;-webkit-text-stroke: 3px white;text-shadow: 5px 5px black;">GAME OVER</div>
+		<div class="play-again-text" style="color:white; font-family: arial; font-size: 50px; text-align: center;">play again</div>
+	</div>
+
+	<div class="score-text" style="position:fixed;left:auto;top:3%%;right:3%;bottom:0; color:white; font-family: 'Arvo', serif;font-weight:bold; font-size: 50px;-webkit-text-stroke: 1px black;">
+		0
+	</div>
+</div>
+	
+<script>
+
+	var canvas = document.getElementById("gameCanvas");
+	var ctx = canvas.getContext("2d");
+		
+	var spriteImage = new Image();
+	 var backgroundImage = new Image();
+	var obstacleDownImage =  new Image();
+	var obstacleUpImage =  new Image();
+	var backgroundImageWidth;
+	var backgroundImageHeight;
+	var obstacleImageWidth;
+	var obstacleImageHeight;
+	
+	var loadedBackground = false;
+	var loadedDownImage = false;
+	var loadedUpImage = false;
+
+	spriteImage.src = "img/sprite.png";
+	backgroundImage.src = "img/background.jpg";
+	obstacleDownImage.src = "img/obstacle-down.png";
+	obstacleUpImage.src = "img/obstacle-up.png";
+
+	backgroundImage.onload=function(){
+		backgroundImageWidth = backgroundImage.naturalWidth;
+		backgroundImageHeight = backgroundImage.naturalHeight;
+		loadedBackground = true;
+		console.log("loaded background");
+	}
+	
+	obstacleDownImage.onload=function(){
+		obstacleImageWidth = obstacleDownImage.naturalWidth;
+		obstacleImageHeight = obstacleDownImage.naturalHeight;	
+		loadedDownImage = true;	
+		console.log("loaded down image");
+	}
+
+	obstacleUpImage.onload=function(){
+		obstacleImageWidth = obstacleDownImage.naturalWidth;
+		obstacleImageHeight = obstacleDownImage.naturalHeight;	
+		loadedUpImage = true;	
+		console.log("loaded up image");
+	}
+	
+	var g = -4;
+	var impulse = 1.1;
+	
+	var spritePositionX = 0;
+	var spritePositionY = 0.7;
+	var spriteVelocityX = 0.3;
+	var spriteVelocityY = 0;
+	var spriteSizeX = .1;
+	var spriteSizeY = .1;
+	
+	var obstacleDistance = 0.5;
+	var obstacleSizeX = 0.15;
+	var obstacleScreenSizeX;
+	
+	var lastT;
+	
+	var spriteScreenX, spriteScreenY, worldX;
+	var spriteScreenSizeX, spriteScreenSizeY;
+	
+	var score = 0;
+
+	var started = false;
+	var gameover = false;
+	var gameOverDisplayed = false;
+	var titleScreen = true;
+
+	var obstacles = []; // position, altitude, width;
+	
+	var width, height;
+	
+	var initGame = function() {
+		spritePositionX = 0;
+	 	spritePositionY = 0.7;
+
+	 	started = false;
+		gameover = false;
+		gameOverDisplayed = false;
+		titleScreen = true;
+	}
+
+	var init = function() {
+		initGame();
+		lastT = getSeconds();
+		registerEventHandlers();
+		resizeCanvas();
+		initializeAndStartTimer();
+	}
+	
+	var initializeAndStartTimer = function() {
+		x_pos = 0;
+		timerID = setInterval( "heartbeat()", 1 );
+	};
+	
+	var registerEventHandlers = function() {
+		document.addEventListener('keydown', function(event) {
+			flap();
+		}, false);
+		document.addEventListener('mousedown', function(event) {
+			flap();
+		}, false);
+
+	}
+	
+	var flap = function() {
+		started = true;
+		spriteVelocityY = impulse;
+	}
+	
+	var heartbeat = function() {
+		var newT = getSeconds();
+		var dT = newT - lastT;
+		lastT = newT;
+		
+		if(!gameover) {
+			updateState(dT);
+			updateObstacles();			
+			collisionDetection();
+		}
+
+		draw();
+		
+		if(gameover)
+			drawGameOver();
+
+	};
+	
+	var getSeconds = function() { 
+		return new Date().getTime()/1000.0;
+	};
+	
+	var resizeCanvas = function() {
+		if(ctx.canvas.width != window.innerWidth || ctx.canvas.height != window.innerHeight) {
+			width = window.innerWidth;
+			height = window.innerHeight;
+			ctx.canvas.width  = width;
+			ctx.canvas.height = height;
+			
+			spriteScreenSizeX = spriteSizeX * height; // use height to define size.
+			spriteScreenSizeY = spriteSizeY * height;					
+
+			worldWidth = width / height;
+		}
+
+		//var ref = Math.min(width, height)/600;
+
+		$(".title-screen").css("font-size",  width * 0.1);
+		$(".title-screen").css("-webkit-text-stroke-width",  width * 0.003);
+
+		$(".game-over-text").css("font-size",  width * 0.1);
+		$(".game-over-text").css("-webkit-text-stroke-width",  width * 0.003);
+
+		
+		$(".play-again-text").css("font-size",  width * 0.05);
+	}
+	
+	var clear = function() {
+		ctx.clearRect(0, 0, canvas.width, canvas.height);
+	}
+	
+	var first = true;
+
+	var draw = function() {	
+		if(first) {
+			console.log("first frame");
+			first = false;
+		}
+
+		if(titleScreen && started) {
+			$(".title-screen").fadeOut();
+			titleScreen = false;
+		}
+
+		resizeCanvas();
+		clear();
+		
+
+		var segmentLength = backgroundImageWidth / backgroundImageHeight;
+		var segmentValue = spritePositionX / segmentLength;
+		var residue = segmentValue - Math.floor(segmentValue);
+		var segmentScreenWidth = height / backgroundImageHeight * backgroundImageWidth;
+		var segmentsNeeded = Math.ceil(width/segmentScreenWidth);
+		
+		ctx.globalAlpha = 0.2;
+		if(loadedBackground)
+			for(var i = -segmentsNeeded/2; i<segmentsNeeded/2 + 1; i++) {
+				ctx.drawImage(backgroundImage, (i-residue) * segmentScreenWidth + spriteScreenX,0,segmentScreenWidth+5, height);
+			}
+		ctx.globalAlpha = 1;
+		
+		ctx.save();
+		var rotX = spriteScreenX + spriteScreenSizeX / 2;
+		var rotY = spriteScreenY + spriteScreenSizeY / 2;
+		ctx.translate(rotX, rotY);
+		ctx.rotate(Math.atan(-spriteVelocityY) * (started?.7:2));
+		ctx.translate(-rotX, -rotY);
+		ctx.drawImage(spriteImage, spriteScreenX, spriteScreenY, spriteScreenSizeX, spriteScreenSizeY);
+		ctx.restore();
+
+		obstacleScreenSizeX = obstacleSizeX * height;
+		obstacleScreenSizeY = obstacleScreenSizeX / obstacleImageWidth * obstacleImageHeight;
+		
+		if(loadedDownImage && loadedUpImage)
+			obstacles.forEach(function(entry) {
+					var x = entry[0];
+					var y = entry[1];
+					var dy = entry[2];
+					
+					ctx.drawImage(obstacleDownImage, (x-spritePositionX-obstacleSizeX/2) * height + 0.5 * width, (1-(y-dy/2)) * height, obstacleScreenSizeX, obstacleScreenSizeY);
+					ctx.drawImage(obstacleUpImage, (x-spritePositionX-obstacleSizeX/2) * height + 0.5 * width, (1-(y+dy/2)) * height - obstacleScreenSizeY, obstacleScreenSizeX, obstacleScreenSizeY);
+				});
+		
+	};
+	
+	
+	
+	var updateState = function(dT) {
+
+		if(started) {
+			spritePositionY += (spriteVelocityY * dT + 0.5 * g * dT * dT);
+			spriteVelocityY += 1 * g * dT;
+		} else {
+			spritePositionY += spriteVelocityY * dT;
+			spriteVelocityY = 0.05* Math.cos(lastT * 2);
+		}
+		
+		spritePositionX += spriteVelocityX * dT;
+		
+		// if(spritePositionY < spriteSizeY * 0.5)
+		// 	spritePositionY = spriteSizeY * 0.5;
+			
+		spriteScreenX = 0.5 * width - 0.5 * spriteScreenSizeX;
+		spriteScreenY = (1-spritePositionY) * height - 0.5 * spriteScreenSizeY;
+		
+	};
+	
+	var updateObstacles = function() {
+		
+		if(!started) {		
+			return;
+		}
+
+		var toRemove = [];
+		
+		var i=0;
+		obstacles.forEach(function(entry) {
+			var x = entry[0];
+			if(x < spritePositionX-worldWidth ) {
+				toRemove.push(i);
+			}
+			i++;
+		});
+		
+		toRemove.reverse();
+		
+		toRemove.forEach(function(entry) {
+			obstacles.splice(entry, 1);
+		});
+		
+		var lastObstacle = null;
+		
+		if(obstacles.length != 0) {
+			lastObstacle = obstacles[obstacles.length - 1];
+		}
+		
+		if(lastObstacle == null || lastObstacle[0] < spritePositionX + worldWidth + obstacleDistance) {
+			
+			if(lastObstacle == null) {
+				obstacles.push([spritePositionX + worldWidth/2 + obstacleDistance, nextHeight(), nextAperture(), false]);
+			} else {
+				obstacles.push([lastObstacle[0] + obstacleDistance, nextHeight(), nextAperture(), false]);
+			}
+			
+		}
+		
+	}
+	
+	var APERTURE = 0.3;
+	var lastHeight = -1;
+	
+	var nextHeight = function() {
+		var candidate = aHeight();
+		
+		while(Math.abs(candidate - lastHeight) < 0.3) {
+			candidate = aHeight();
+		}
+		
+		lastHeight = candidate;
+		return candidate;
+	}
+	
+	var aHeight = function() {
+		var base = 0.05 + APERTURE / 2;
+		var variation = 1 - 0.05 - APERTURE / 2 - base;
+		return variation * Math.random() + base;
+	}
+	
+	var nextAperture = function() {
+		return APERTURE;
+	}
+	
+	var collisionDetection = function() {
+		var i=0;
+		var spriteFactor = 0.7;
+		var spriteFactorY = 0.5;
+
+			if(spritePositionY < spriteSizeY * 0.5) {
+				gameover = true;
+				return;
+			}
+		
+		obstacles.forEach(function(entry) {
+			var x = entry[0];
+			var spriteLeft = spritePositionX-spriteSizeX/2 * spriteFactor;
+			var spriteRight = spritePositionX+spriteSizeX/2 * spriteFactor;
+			var spriteTop = spritePositionY + spriteSizeX/2 * spriteFactorY;
+			var spriteBottom = spritePositionY - spriteSizeX/2 * spriteFactorY;
+			var obstacleLeft = x - obstacleSizeX/2;
+			var obstacleRight = x + obstacleSizeX/2;
+			if(
+				spriteLeft >= obstacleLeft && spriteLeft <= obstacleRight ||
+				spriteRight >= obstacleLeft && spriteRight <= obstacleRight
+				) {
+				var height = entry[1];
+				var aperture = entry[2];
+
+				var apertureTop = height + aperture/2;
+				var apertureBottom = height - aperture/2;
+
+				if(spriteTop>=apertureTop || spriteBottom<=apertureBottom) {									
+					gameover = true;
+				}
+
+
+			}
+			if(!gameover) {
+				if(spriteLeft > obstacleRight) {
+					if(entry[3] == false) {
+						score += 10;
+						$(".score-text").text(score);
+						entry[3] = true;
+					}
+				}
+			}
+			i++;
+		});
+	}
+
+	var drawGameOver = function() {
+		
+		if(!gameOverDisplayed) {
+			gameOverDisplayed = true;
+			$('#gameover').fadeIn();
+		}
+
+		//ctx.fillStyle = "#FF0000"
+		//ctx.fillRect(0, 0, width, height);
+	}
+
+	var gameoverClick = function() {
+		
+		initGame();
+
+		$('#gameover').fadeOut();
+	}
+
+	init();
+
+</script>
+
+<body>
