@@ -15,20 +15,48 @@
 	</style>
 </head>
 <body style="margin:0; padding:0;" class="noselect">
-	<canvas id="gameCanvas" style="background-color:#0080A3;width:100%;height:100%">
-	</canvas>
-	<div class="title-screen" style="position:fixed;left:0;top:40%;right:0;bottom:0;color:orange;font-size:150px;text-align:center;font-family: 'Arvo', serif;font-weight:bold;-webkit-text-stroke: 3px white;text-shadow: 5px 5px black;">SHARKY'S ADVENTURE I</div>
-	
-	<div class="game-over" id="gameover" onclick="gameoverClick();" style="position: fixed; display:none;left:0;top:40%;right:0;bottom:0;">
-		<div class="game-over-text" style="color:orangered;font-size:200px;text-align:center;font-family: 'Arvo', serif;font-weight:bold;-webkit-text-stroke: 3px white;text-shadow: 5px 5px black;">GAME OVER</div>
-		<div class="play-again-text" style="color:white; font-family: arial; font-size: 50px; text-align: center;">play again</div>
-	</div>
+       <canvas id="gameCanvas" style="background-color:#0080A3;width:100%;height:100%">
+       </canvas>
+       <div class="title-screen" style="position:fixed;left:0;top:40%;right:0;bottom:0;color:orange;font-size:150px;text-align:center;font-family: 'Arvo', serif;font-weight:bold;-webkit-text-stroke:
+ 3px white;text-shadow: 5px 5px black;">SHARKY'S ADVENTURE I</div>
 
-	<div class="score-text" style="position:fixed;left:auto;top:3%%;right:3%;bottom:0; color:white; font-family: 'Arvo', serif;font-weight:bold; font-size: 50px;-webkit-text-stroke: 1px black;">
-		0
-	</div>
+       <div class="game-over" id="gameover" onclick="gameoverClick();" style="position: fixed; display:none;left:0;top:40%;right:0;bottom:0;">
+               <div class="game-over-text" style="color:orangered;font-size:200px;text-align:center;font-family: 'Arvo', serif;font-weight:bold;-webkit-text-stroke: 3px white;text-shadow: 5px 5px bl
+ack;">GAME OVER</div>
+               <div class="play-again-text" style="color:white; font-family: arial; font-size: 50px; text-align: center;">play again</div>
+       </div>
+
+       <div class="score-text" style="position:fixed;left:auto;top:3%%;right:3%;bottom:0; color:white; font-family: 'Arvo', serif;font-weight:bold; font-size: 50px;-webkit-text-stroke: 1px black;">
+               0
+       </div>	
+
+<div
+  class="fb-like"
+  data-share="true"
+  data-width="450"
+  data-show-faces="true">
+</div>
+
 </div>
 	
+<script>
+  window.fbAsyncInit = function() {
+    FB.init({
+      appId      : '767859619969606',
+      xfbml      : true,
+      version    : 'v2.2'
+    });
+  };
+
+  (function(d, s, id){
+     var js, fjs = d.getElementsByTagName(s)[0];
+     if (d.getElementById(id)) {return;}
+     js = d.createElement(s); js.id = id;
+     js.src = "//connect.facebook.net/en_US/sdk.js";
+     fjs.parentNode.insertBefore(js, fjs);
+   }(document, 'script', 'facebook-jssdk'));
+</script>
+
 <script>
 
 	var canvas = document.getElementById("gameCanvas");
@@ -46,6 +74,8 @@
 	var loadedBackground = false;
 	var loadedDownImage = false;
 	var loadedUpImage = false;
+
+	var spriteScreenRelativeLocation = 0.3;
 
 	spriteImage.src = "img/sprite.png";
 	backgroundImage.src = "img/background.jpg";
@@ -92,12 +122,13 @@
 	var spriteScreenX, spriteScreenY, worldX;
 	var spriteScreenSizeX, spriteScreenSizeY;
 	
-	var score = 0;
+	var score;
 
 	var started = false;
 	var gameover = false;
 	var gameOverDisplayed = false;
 	var titleScreen = true;
+	var readyToRestart = false;
 
 	var obstacles = []; // position, altitude, width;
 	
@@ -106,16 +137,24 @@
 	var initGame = function() {
 		spritePositionX = 0;
 	 	spritePositionY = 0.7;
+		spriteVelocityX = 0.3;
+		spriteVelocityY = 0;
 
 	 	started = false;
 		gameover = false;
 		gameOverDisplayed = false;
 		titleScreen = true;
+		readyToRestart = false;
+		
+		score = 0;
+
+		lastT = getSeconds();
+
+		console.log("restarted");
 	}
 
 	var init = function() {
 		initGame();
-		lastT = getSeconds();
 		registerEventHandlers();
 		resizeCanvas();
 		initializeAndStartTimer();
@@ -127,13 +166,24 @@
 	};
 	
 	var registerEventHandlers = function() {
+		
 		document.addEventListener('keydown', function(event) {
-			flap();
+			if(readyToRestart) {
+				resetGame();
+			} else {
+				if(!gameover)
+					flap();
+			}
 		}, false);
 		document.addEventListener('mousedown', function(event) {
-			flap();
+			if(readyToRestart) {
+				resetGame();
+			} else {
+				if(!gameover)
+					flap();
+			}
 		}, false);
-
+		
 	}
 	
 	var flap = function() {
@@ -240,8 +290,8 @@
 					var y = entry[1];
 					var dy = entry[2];
 					
-					ctx.drawImage(obstacleDownImage, (x-spritePositionX-obstacleSizeX/2) * height + 0.5 * width, (1-(y-dy/2)) * height, obstacleScreenSizeX, obstacleScreenSizeY);
-					ctx.drawImage(obstacleUpImage, (x-spritePositionX-obstacleSizeX/2) * height + 0.5 * width, (1-(y+dy/2)) * height - obstacleScreenSizeY, obstacleScreenSizeX, obstacleScreenSizeY);
+					ctx.drawImage(obstacleDownImage, (x-spritePositionX-obstacleSizeX/2) * height + spriteScreenRelativeLocation * width, (1-(y-dy/2)) * height, obstacleScreenSizeX, obstacleScreenSizeY);
+					ctx.drawImage(obstacleUpImage, (x-spritePositionX-obstacleSizeX/2) * height + spriteScreenRelativeLocation * width, (1-(y+dy/2)) * height - obstacleScreenSizeY, obstacleScreenSizeX, obstacleScreenSizeY);
 				});
 		
 	};
@@ -263,7 +313,7 @@
 		// if(spritePositionY < spriteSizeY * 0.5)
 		// 	spritePositionY = spriteSizeY * 0.5;
 			
-		spriteScreenX = 0.5 * width - 0.5 * spriteScreenSizeX;
+		spriteScreenX = spriteScreenRelativeLocation * width - 0.5 * spriteScreenSizeX;
 		spriteScreenY = (1-spritePositionY) * height - 0.5 * spriteScreenSizeY;
 		
 	};
@@ -385,16 +435,23 @@
 		if(!gameOverDisplayed) {
 			gameOverDisplayed = true;
 			$('#gameover').fadeIn();
+
+			window.setTimeout(function() {
+				$(".play-again-text").fadeIn();
+				readyToRestart = true;
+				console.log("readyToRestart");
+			}, 1000);
 		}
 
 		//ctx.fillStyle = "#FF0000"
 		//ctx.fillRect(0, 0, width, height);
 	}
 
-	var gameoverClick = function() {
+	var resetGame = function() {
 		
 		initGame();
 
+		$(".play-again-text").fadeOut();
 		$('#gameover').fadeOut();
 	}
 
