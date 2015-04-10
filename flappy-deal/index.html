@@ -84,7 +84,9 @@
 		document.addEventListener('mousedown', function(event) {
 			flap();
 		}, false);
-
+		document.addEventListener('touchstart', function(e){
+			flap();
+		}, false)
 	}
 	
 	var flap = function() {
