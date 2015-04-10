@@ -164,26 +164,27 @@ ack;">GAME OVER</div>
 		x_pos = 0;
 		timerID = setInterval( "heartbeat()", 1 );
 	};
-	
+
+	var handleAction = function() {
+		if(readyToRestart) {
+			resetGame();
+		} else {
+			if(!gameover)
+				flap();
+		}
+	};
+
 	var registerEventHandlers = function() {
 		
 		document.addEventListener('keydown', function(event) {
-			if(readyToRestart) {
-				resetGame();
-			} else {
-				if(!gameover)
-					flap();
-			}
+			handleAction();
 		}, false);
 		document.addEventListener('mousedown', function(event) {
-			if(readyToRestart) {
-				resetGame();
-			} else {
-				if(!gameover)
-					flap();
-			}
+			handleAction();
 		}, false);
-		
+		document.addEventListener('touchstart', function(e){
+			handleAction();
+		}, false);
 	}
 	
 	var flap = function() {
