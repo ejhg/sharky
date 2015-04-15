@@ -4,40 +4,86 @@
 	<link href='http://fonts.googleapis.com/css?family=Arvo:400,700' rel='stylesheet' type='text/css'>
 	<style>
 		.noselect {
-	    -webkit-touch-callout: none;
-	    -webkit-user-select: none;
-	    -khtml-user-select: none;
-	    -moz-user-select: none;
-	    -ms-user-select: none;
-	    user-select: none;
-	    cursor: pointer;
-	}
+			-webkit-touch-callout: none;
+			-webkit-user-select: none;
+			-khtml-user-select: none;
+			-moz-user-select: none;
+			-ms-user-select: none;
+			user-select: none;
+			cursor: pointer;
+			-webkit-tap-highlight-color: rgba(0, 0, 0, 0);
+		}
+		.game-canvas {
+			background-color:#0080A3;
+			width:100%;
+			height:100%;
+		}
+
+		.game-over-text {
+			color:orangered;
+			font-size:200px;
+			text-align:center;
+			font-family: 'Arvo', serif;
+			font-weight:bold;
+			-webkit-text-stroke: 3px white;
+			text-shadow: 5px 5px black;
+		}
+
+		.play-again-text {
+			color: white;
+			font-family: arial;
+			font-size: 50px;
+			text-align: center;
+			display:none;
+		}
+
+		.score-text {
+			position: fixed;
+			left: auto;
+			top: 3%;
+			right: 3%;bottom: 0;
+			color:white;
+			font-family: 'Arvo', serif;
+			font-weight:bold;
+			font-size: 50px;
+			-webkit-text-stroke: 1px black;
+		}
+
+		.title-screen-text {
+			position: fixed;
+			left: 0;
+			top: 40%;
+			right: 0;
+			bottom: 0;
+			color: orange;
+			font-size: 150px;
+			text-align: center;
+			font-family: 'Arvo', serif;
+			font-weight: bold;
+			-webkit-text-stroke: 3px white;
+			text-shadow: 5px 5px black;
+		}
 	</style>
 </head>
 <body style="margin:0; padding:0;" class="noselect">
-       <canvas id="gameCanvas" style="background-color:#0080A3;width:100%;height:100%">
+       <canvas id="gameCanvas" class="game-canvas noselect">
        </canvas>
-       <div class="title-screen" style="position:fixed;left:0;top:40%;right:0;bottom:0;color:orange;font-size:150px;text-align:center;font-family: 'Arvo', serif;font-weight:bold;-webkit-text-stroke:
- 3px white;text-shadow: 5px 5px black;">SHARKY'S ADVENTURE I</div>
+       <div class="title-screen" class="title-screen-text">SHARKY'S ADVENTURE I</div>
 
-       <div class="game-over" id="gameover" onclick="gameoverClick();" style="position: fixed; display:none;left:0;top:40%;right:0;bottom:0;">
-               <div class="game-over-text" style="color:orangered;font-size:200px;text-align:center;font-family: 'Arvo', serif;font-weight:bold;-webkit-text-stroke: 3px white;text-shadow: 5px 5px bl
-ack;">GAME OVER</div>
-               <div class="play-again-text" style="color:white; font-family: arial; font-size: 50px; text-align: center; display:none;">play again</div>
+       <div class="game-over" id="gameover" onclick="resetGame();" style="position: fixed; display:none;left:0;top:40%;right:0;bottom:0;">
+               <div class="game-over-text" class="game-over-text">GAME OVER</div>
+               <div class="play-again-text">play again</div>
        </div>
 
-       <div class="score-text" style="position:fixed;left:auto;top:3%%;right:3%;bottom:0; color:white; font-family: 'Arvo', serif;font-weight:bold; font-size: 50px;-webkit-text-stroke: 1px black;">
-               0
-       </div>	
+       <div class="score-text" style="">0</div>
 
-<div
-  class="fb-like"
-  data-share="true"
-  data-width="450"
-  data-show-faces="true">
-</div>
-
-</div>
+	   <div id="fb-root"></div>
+		<div
+		  class="fb-like"
+		  data-share="true"
+		  data-width="450"
+		  data-show-faces="true">
+		</div>
 	
 <script>
   window.fbAsyncInit = function() {
@@ -59,11 +105,13 @@ ack;">GAME OVER</div>
 
 <script>
 
+	var debug = false;
+
 	var canvas = document.getElementById("gameCanvas");
 	var ctx = canvas.getContext("2d");
 		
 	var spriteImage = new Image();
-	 var backgroundImage = new Image();
+	var backgroundImage = new Image();
 	var obstacleDownImage =  new Image();
 	var obstacleUpImage =  new Image();
 	var backgroundImageWidth;
@@ -77,6 +125,8 @@ ack;">GAME OVER</div>
 
 	var spriteScreenRelativeLocation = 0.3;
 
+	var allowMouseEvents = true;
+
 	spriteImage.src = "img/sprite.png";
 	backgroundImage.src = "img/background.jpg";
 	obstacleDownImage.src = "img/obstacle-down.png";
@@ -86,22 +136,22 @@ ack;">GAME OVER</div>
 		backgroundImageWidth = backgroundImage.naturalWidth;
 		backgroundImageHeight = backgroundImage.naturalHeight;
 		loadedBackground = true;
-		console.log("loaded background");
-	}
+		log("loaded background");
+	};
 	
 	obstacleDownImage.onload=function(){
 		obstacleImageWidth = obstacleDownImage.naturalWidth;
 		obstacleImageHeight = obstacleDownImage.naturalHeight;	
 		loadedDownImage = true;	
-		console.log("loaded down image");
-	}
+		log("loaded down image");
+	};
 
 	obstacleUpImage.onload=function(){
 		obstacleImageWidth = obstacleDownImage.naturalWidth;
 		obstacleImageHeight = obstacleDownImage.naturalHeight;	
 		loadedUpImage = true;	
-		console.log("loaded up image");
-	}
+		log("loaded up image");
+	};
 	
 	var g = -4;
 	var impulse = 1.1;
@@ -133,7 +183,7 @@ ack;">GAME OVER</div>
 	var obstacles = []; // position, altitude, width;
 	
 	var width, height;
-	
+
 	var initGame = function() {
 		spritePositionX = 0;
 	 	spritePositionY = 0.7;
@@ -149,16 +199,22 @@ ack;">GAME OVER</div>
 		setScore(0);
 
 		lastT = getSeconds();
+	};
 
-		console.log("restarted");
-	}
+	var initPage = function () {
+		document.oncontextmenu =new Function("return false;");
+		$('game-canvas').get().oncontextmenu =new Function("return false;");
+		allowMouseEvents = !isTouchDevice();
+	};
 
 	var init = function() {
+		helloMessage();
+		initPage();
 		initGame();
 		registerEventHandlers();
 		resizeCanvas();
 		initializeAndStartTimer();
-	}
+	};
 	
 	var initializeAndStartTimer = function() {
 		x_pos = 0;
@@ -177,20 +233,25 @@ ack;">GAME OVER</div>
 	var registerEventHandlers = function() {
 		
 		document.addEventListener('keydown', function(event) {
+			log("keydown");
 			handleAction();
 		}, false);
 		document.addEventListener('mousedown', function(event) {
-			handleAction();
+			if(allowMouseEvents) {
+				log("mousedown");
+				handleAction();
+			}
 		}, false);
 		document.addEventListener('touchstart', function(e){
+			log("touchstart");
 			handleAction();
 		}, false);
-	}
+	};
 	
 	var flap = function() {
 		started = true;
 		spriteVelocityY = impulse;
-	}
+	};
 	
 	var heartbeat = function() {
 		var newT = getSeconds();
@@ -237,17 +298,17 @@ ack;">GAME OVER</div>
 
 		
 		$(".play-again-text").css("font-size",  width * 0.05);
-	}
+	};
 	
 	var clear = function() {
 		ctx.clearRect(0, 0, canvas.width, canvas.height);
-	}
+	};
 	
 	var first = true;
 
 	var draw = function() {	
 		if(first) {
-			console.log("first frame");
+			log("first frame");
 			first = false;
 		}
 
@@ -358,7 +419,7 @@ ack;">GAME OVER</div>
 			
 		}
 		
-	}
+	};
 	
 	var APERTURE = 0.3;
 	var lastHeight = -1;
@@ -372,17 +433,17 @@ ack;">GAME OVER</div>
 		
 		lastHeight = candidate;
 		return candidate;
-	}
+	};
 	
 	var aHeight = function() {
 		var base = 0.05 + APERTURE / 2;
 		var variation = 1 - 0.05 - APERTURE / 2 - base;
 		return variation * Math.random() + base;
-	}
+	};
 	
 	var nextAperture = function() {
 		return APERTURE;
-	}
+	};
 	
 	var collisionDetection = function() {
 		var i=0;
@@ -428,12 +489,12 @@ ack;">GAME OVER</div>
 			}
 			i++;
 		});
-	}
+	};
 
 	var setScore = function(value) {
 		score = value;
 		$(".score-text").text(score);
-	}
+	};
 
 	var drawGameOver = function() {
 		
@@ -444,20 +505,43 @@ ack;">GAME OVER</div>
 			window.setTimeout(function() {
 				$(".play-again-text").fadeIn();
 				readyToRestart = true;
-				console.log("readyToRestart");
+				log("readyToRestart");
 			}, 1000);
 		}
 
 		//ctx.fillStyle = "#FF0000"
 		//ctx.fillRect(0, 0, width, height);
-	}
+	};
 
 	var resetGame = function() {
-		
 		initGame();
 
 		$(".play-again-text").fadeOut();
 		$('#gameover').fadeOut();
+	};
+
+	var helloMessage = function() {
+		log("Hello!  Welcome to the hidden room!  Are you a hacker?", true);
+		log("This whole world was created just for you to find this.", true);
+		log("Wanna write help millions of users save #SomeMoney?", true);
+		log("Email us at careers@rmn.com!", true);
+		log("Sincerely,", true);
+		log("The Hackers of FiveOClock.", true);
+	};
+
+	var log = function(o, override) {
+		if(debug || override === true) {
+			console.log(o);
+		}
+	};
+
+	var isTouchDevice = function() {
+		try {
+			document.createEvent("TouchEvent");
+			return true;
+		} catch (e) {
+			return false;
+		}
 	}
 
 	init();
