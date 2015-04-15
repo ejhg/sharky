@@ -1,8 +1,14 @@
 <html>
 <head>
+	<meta name="viewport" content="initial-scale=1, maximum-scale=1">
 	<script src="http://ajax.googleapis.com/ajax/libs/jquery/2.1.1/jquery.min.js"></script>
 	<link href='http://fonts.googleapis.com/css?family=Arvo:400,700' rel='stylesheet' type='text/css'>
 	<style>
+		body {
+			margin:0;
+			padding:0;
+		}
+
 		.noselect {
 			-webkit-touch-callout: none;
 			-webkit-user-select: none;
@@ -40,16 +46,17 @@
 		.score-text {
 			position: fixed;
 			left: auto;
-			top: 3%;
-			right: 3%;bottom: 0;
+			top: 0.8em;
+			right: 0.3em;
+			bottom: 0;
 			color:white;
 			font-family: 'Arvo', serif;
 			font-weight:bold;
-			font-size: 50px;
+			font-size: 5em;
 			-webkit-text-stroke: 1px black;
 		}
 
-		.title-screen-text {
+		.title-screen {
 			position: fixed;
 			left: 0;
 			top: 40%;
@@ -63,12 +70,33 @@
 			-webkit-text-stroke: 3px white;
 			text-shadow: 5px 5px black;
 		}
+
+		.like-button-area {
+			position: fixed;
+			left: 3em;
+			top: 100%;
+		}
+
+		.fb_iframe_widget iframe
+		{
+			transform: scale(2) rotate(-90deg);
+			-ms-transform: scale(2) rotate(-90deg);
+			-webkit-transform: scale(2) rotate(-90deg);
+			-o-transform: scale(2) rotate(-90deg);
+			-moz-transform: scale(2) rotate(-90deg);
+
+			transform-origin: bottom left;
+			-ms-transform-origin: bottom left;
+			-webkit-transform-origin: bottom left;
+			-moz-transform-origin: bottom left;
+			-webkit-transform-origin: bottom left;
+		}
 	</style>
 </head>
-<body style="margin:0; padding:0;" class="noselect">
+<body class="noselect">
        <canvas id="gameCanvas" class="game-canvas noselect">
        </canvas>
-       <div class="title-screen" class="title-screen-text">SHARKY'S ADVENTURE I</div>
+       <div class="title-screen">SHARKY'S ADVENTURE I</div>
 
        <div class="game-over" id="gameover" onclick="resetGame();" style="position: fixed; display:none;left:0;top:40%;right:0;bottom:0;">
                <div class="game-over-text" class="game-over-text">GAME OVER</div>
@@ -77,31 +105,35 @@
 
        <div class="score-text" style="">0</div>
 
-	   <div id="fb-root"></div>
-		<div
-		  class="fb-like"
-		  data-share="true"
-		  data-width="450"
-		  data-show-faces="true">
-		</div>
-	
-<script>
-  window.fbAsyncInit = function() {
-    FB.init({
-      appId      : '767859619969606',
-      xfbml      : true,
-      version    : 'v2.2'
-    });
-  };
+	   <div class="like-button-area">
+		   <div id="fb-root"></div>
+		   <script>(function(d, s, id) {
+			   var js, fjs = d.getElementsByTagName(s)[0];
+			   if (d.getElementById(id)) return;
+			   js = d.createElement(s); js.id = id;
+			   js.src = "//connect.facebook.net/en_US/sdk.js#xfbml=1&version=v2.3&appId=477798752368945";
+			   fjs.parentNode.insertBefore(js, fjs);
+		   }(document, 'script', 'facebook-jssdk'));</script>
+		   <div class="fb-like" data-href="http://sharky.co" data-width="400" data-layout="button_count" data-action="like" data-show-faces="false" data-share="true"></div>
+	   </div>
 
-  (function(d, s, id){
-     var js, fjs = d.getElementsByTagName(s)[0];
-     if (d.getElementById(id)) {return;}
-     js = d.createElement(s); js.id = id;
-     js.src = "//connect.facebook.net/en_US/sdk.js";
-     fjs.parentNode.insertBefore(js, fjs);
-   }(document, 'script', 'facebook-jssdk'));
-</script>
+	   <script>
+		   window.fbAsyncInit = function() {
+			   FB.init({
+				   appId      : '477798752368945',
+				   xfbml      : true,
+				   version    : 'v2.3'
+			   });
+		   };
+
+		   (function(d, s, id){
+			   var js, fjs = d.getElementsByTagName(s)[0];
+			   if (d.getElementById(id)) {return;}
+			   js = d.createElement(s); js.id = id;
+			   js.src = "//connect.facebook.net/en_US/sdk.js";
+			   fjs.parentNode.insertBefore(js, fjs);
+		   }(document, 'script', 'facebook-jssdk'));
+	   </script>
 
 <script>
 
