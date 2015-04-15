@@ -32,7 +32,6 @@
 			left: 0;
 			right: 0;
 			bottom: 0;
-			background: green;
 		}
 
 		.game-over-text {
@@ -105,12 +104,16 @@
 			-moz-transform-origin: bottom left;
 			-webkit-transform-origin: bottom left;
 		}
+
+		.game-over-color {
+			background: purple;
+		}
 	</style>
 </head>
 <body class="noselect">
        <canvas id="gameCanvas" class="game-canvas noselect">
        </canvas>
-       <!--div class="title-screen">SHARKY'S ADVENTURE I</div>
+       <div class="title-screen">SHARKY'S ADVENTURE I</div>
 
        <div class="game-over" id="gameover" onclick="resetGame();" style="position: fixed; display:none;left:0;top:40%;right:0;bottom:0;">
                <div class="game-over-text" class="game-over-text">GAME OVER</div>
@@ -118,18 +121,6 @@
        </div>
 
        <div class="score-text" style="">0</div>
-
-	   <div class="like-button-area social-stuff">
-		   <div id="fb-root"></div>
-		   <script>(function(d, s, id) {
-			   var js, fjs = d.getElementsByTagName(s)[0];
-			   if (d.getElementById(id)) return;
-			   js = d.createElement(s); js.id = id;
-			   js.src = "//connect.facebook.net/en_US/sdk.js#xfbml=1&version=v2.3&appId=477798752368945";
-			   fjs.parentNode.insertBefore(js, fjs);
-		   }(document, 'script', 'facebook-jssdk'));</script>
-		   <div class="fb-like" data-href="http://sharky.co" data-width="400" data-layout="button_count" data-action="like" data-show-faces="true" data-share="true"></div>
-	   </div>
 
 	   <script>
 		   window.fbAsyncInit = function() {
@@ -147,7 +138,19 @@
 			   js.src = "//connect.facebook.net/en_US/sdk.js";
 			   fjs.parentNode.insertBefore(js, fjs);
 		   }(document, 'script', 'facebook-jssdk'));
-	   </script-->
+	   </script>
+
+	   <div class="like-button-area social-stuff">
+		   <div id="fb-root"></div>
+		   <script>(function(d, s, id) {
+			   var js, fjs = d.getElementsByTagName(s)[0];
+			   if (d.getElementById(id)) return;
+			   js = d.createElement(s); js.id = id;
+			   js.src = "//connect.facebook.net/en_US/sdk.js#xfbml=1&version=v2.3&appId=477798752368945";
+			   fjs.parentNode.insertBefore(js, fjs);
+		   }(document, 'script', 'facebook-jssdk'));</script>
+		   <div class="fb-like" data-href="http://sharky.co" data-width="400" data-layout="button_count" data-action="like" data-show-faces="true" data-share="true"></div>
+	   </div>
 
 <script>
 
@@ -342,7 +345,6 @@
 		$(".game-over-text").css("font-size",  width * 0.1);
 		$(".game-over-text").css("-webkit-text-stroke-width",  width * 0.003);
 
-		
 		$(".play-again-text").css("font-size",  width * 0.05);
 	};
 	
@@ -377,7 +379,7 @@
 		ctx.globalAlpha = 0.2;
 		if(loadedBackground)
 			for(var i = -segmentsNeeded/2; i<segmentsNeeded/2 + 1; i++) {
-				ctx.drawImage(backgroundImage, (i-residue) * segmentScreenWidth + spriteScreenX,0,segmentScreenWidth+5, height);
+				ctx.drawImage(backgroundImage, (i-residue) * segmentScreenWidth + spriteScreenX,0,segmentScreenWidth+1, height);
 			}
 		ctx.globalAlpha = 1;
 		
@@ -547,8 +549,8 @@
 		
 		if(!gameOverDisplayed) {
 			gameOverDisplayed = true;
-			$('#gameover').fadeIn();
-
+			$('.game-over').fadeIn();
+			$('.game-canvas').addClass('game-over-color');
 			window.setTimeout(function() {
 				$(".play-again-text").fadeIn();
 				$('.social-stuff').fadeIn();
@@ -565,7 +567,8 @@
 		initGame();
 
 		$(".play-again-text").fadeOut();
-		$('#gameover').fadeOut();
+		$('.game-over').fadeOut();
+		$('.game-canvas').removeClass('game-over-color');
 	};
 
 	var helloMessage = function() {
