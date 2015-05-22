@@ -1,7 +1,6 @@
 <html>
 <head>
 	<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
-	<script src="http://ajax.googleapis.com/ajax/libs/jquery/2.1.1/jquery.min.js"></script>
 	<link href='http://fonts.googleapis.com/css?family=Arvo:400,700' rel='stylesheet' type='text/css'>
 	<style>
 		body {
@@ -25,6 +24,7 @@
 			cursor: pointer;
 			-webkit-tap-highlight-color: rgba(0, 0, 0, 0);
 		}
+
 		.game-canvas {
 			position: fixed;
 			background-color:#0080A3;
@@ -32,6 +32,7 @@
 			left: 0;
 			right: 0;
 			bottom: 0;
+			transition: background-color 0.3s linear;
 		}
 
 		.game-over-text {
@@ -46,10 +47,9 @@
 
 		.play-again-text {
 			color: white;
-			font-family: arial;
+			font-family: Arial, sans-serif;
 			font-size: 50px;
 			text-align: center;
-			display:none;
 		}
 
 		.score-text {
@@ -78,6 +78,18 @@
 			font-weight: bold;
 			-webkit-text-stroke: 3px white;
 			text-shadow: 5px 5px black;
+		}
+
+		.fade {
+			opacity:  1.0;
+			transition: opacity 0.3s;
+			-webkit-transition: opacity 0.3s;
+			-moz-transition: opacity 0.3s;
+			-o-transition: opacity 0.3s;
+		}
+
+		.fade.out {
+			opacity: 0.0;
 		}
 
 		.like-button-area {
@@ -111,16 +123,16 @@
 	</style>
 </head>
 <body class="noselect">
-       <canvas id="gameCanvas" class="game-canvas noselect">
+       <canvas id="game-canvas" class="game-canvas noselect">
        </canvas>
-       <div class="title-screen">SHARKY'S ADVENTURE I</div>
+       <div id="title-screen" class="title-screen fade">SHARKY'S ADVENTURE I</div>
 
-       <div class="game-over" id="gameover" onclick="resetGame();" style="position: fixed; display:none;left:0;top:40%;right:0;bottom:0;">
-               <div class="game-over-text" class="game-over-text">GAME OVER</div>
-               <div class="play-again-text">play again</div>
+       <div class="game-over fade out" id="game-over" style="position: fixed; left:0;top:40%;right:0;bottom:0;">
+               <div id="game-over-text" class="game-over-text">GAME OVER</div>
+               <div id="play-again-text" class="play-again-text">play again</div>
        </div>
 
-       <div class="score-text" style="">0</div>
+       <div id="score-text" class="score-text" style="">0</div>
 
 	   <script>
 		   window.fbAsyncInit = function() {
@@ -140,7 +152,7 @@
 		   }(document, 'script', 'facebook-jssdk'));
 	   </script>
 
-	   <div class="like-button-area social-stuff">
+	   <div id="social-stuff" class="like-button-area social-stuff fade">
 		   <div id="fb-root"></div>
 		   <script>(function(d, s, id) {
 			   var js, fjs = d.getElementsByTagName(s)[0];
@@ -156,9 +168,17 @@
 
 	var debug = false;
 
-	var canvas = document.getElementById("gameCanvas");
+	var $titleScreen = document.getElementById('title-screen');
+	var $gameOverText = document.getElementById('game-over-text');
+	var $playAgainText = document.getElementById('play-again-text');
+	var $socialStuff = document.getElementById('social-stuff');
+	var $scoreText = document.getElementById('score-text');
+	var $gameOver = document.getElementById('game-over');
+	var $gameCanvas = document.getElementById('game-canvas');
+
+	var canvas = document.getElementById("game-canvas");
 	var ctx = canvas.getContext("2d");
-		
+
 	var spriteImage = new Image();
 	var backgroundImage = new Image();
 	var obstacleDownImage =  new Image();
@@ -167,7 +187,7 @@
 	var backgroundImageHeight;
 	var obstacleImageWidth;
 	var obstacleImageHeight;
-	
+
 	var loadedBackground = false;
 	var loadedDownImage = false;
 	var loadedUpImage = false;
@@ -176,51 +196,65 @@
 
 	var allowMouseEvents = true;
 
+	backgroundImage.onload = function(){
+		backgroundImageWidth = backgroundImage.naturalWidth;
+		backgroundImageHeight = backgroundImage.naturalHeight;
+		loadedBackground = true;
+
+		// Pre-render the lowered alpha of the background image to avoid needing to do the transformation on each tick.
+		var offscreenCanvas = document.createElement('canvas');
+		offscreenCanvas.width = backgroundImageWidth;
+		offscreenCanvas.height = backgroundImageHeight;
+		var offscreenContext = offscreenCanvas.getContext('2d');
+		offscreenContext.fillStyle = "#0080A3";
+		offscreenContext.fillRect(0, 0, backgroundImageWidth, backgroundImageHeight);
+		offscreenContext.globalAlpha = 0.2;
+		offscreenContext.drawImage(backgroundImage, 0, 0, backgroundImageWidth, backgroundImageHeight);
+		offscreenContext.globalAlpha = 1;
+		backgroundImage = offscreenCanvas;
+
+		log("loaded background");
+	};
+
+	obstacleDownImage.onload = function(){
+		obstacleImageWidth = obstacleDownImage.naturalWidth;
+		obstacleImageHeight = obstacleDownImage.naturalHeight;
+		loadedDownImage = true;
+		log("loaded down image");
+	};
+
+	obstacleUpImage.onload = function(){
+		obstacleImageWidth = obstacleDownImage.naturalWidth;
+		obstacleImageHeight = obstacleDownImage.naturalHeight;
+		loadedUpImage = true;
+		log("loaded up image");
+	};
+
 	spriteImage.src = "img/sprite.png";
 	backgroundImage.src = "img/background.jpg";
 	obstacleDownImage.src = "img/obstacle-down.png";
 	obstacleUpImage.src = "img/obstacle-up.png";
 
-	backgroundImage.onload=function(){
-		backgroundImageWidth = backgroundImage.naturalWidth;
-		backgroundImageHeight = backgroundImage.naturalHeight;
-		loadedBackground = true;
-		log("loaded background");
-	};
-	
-	obstacleDownImage.onload=function(){
-		obstacleImageWidth = obstacleDownImage.naturalWidth;
-		obstacleImageHeight = obstacleDownImage.naturalHeight;	
-		loadedDownImage = true;	
-		log("loaded down image");
-	};
-
-	obstacleUpImage.onload=function(){
-		obstacleImageWidth = obstacleDownImage.naturalWidth;
-		obstacleImageHeight = obstacleDownImage.naturalHeight;	
-		loadedUpImage = true;	
-		log("loaded up image");
-	};
-	
 	var g = -4;
 	var impulse = 1.1;
-	
+
 	var spritePositionX = 0;
 	var spritePositionY = 0.7;
 	var spriteVelocityX = 0.3;
 	var spriteVelocityY = 0;
 	var spriteSizeX = .1;
 	var spriteSizeY = .1;
-	
+
 	var obstacleDistance = 0.5;
 	var obstacleSizeX = 0.15;
 	var obstacleScreenSizeX;
-	
+	var obstacleScreenSizeY;
+
 	var lastT;
-	
+
 	var spriteScreenX, spriteScreenY, worldX;
 	var spriteScreenSizeX, spriteScreenSizeY;
-	
+
 	var score;
 
 	var started = false;
@@ -229,9 +263,14 @@
 	var titleScreen = true;
 	var readyToRestart = false;
 
+	// By reusing obstacle definitions, we avoid garbage collection for these arrays that can be re-used anyway.
+	var OBSTACLE_POOL_SIZE = 8;
+	var claimIndex = 0;
+	var releaseIndex = 0;
+	var lastObstacle;
 	var obstacles = []; // position, altitude, width;
-	
-	var width, height;
+
+	var width, height, worldWidth;
 
 	var initGame = function() {
 		spritePositionX = 0;
@@ -244,30 +283,31 @@
 		gameOverDisplayed = false;
 		titleScreen = true;
 		readyToRestart = false;
-		
+
 		setScore(0);
 
-		lastT = getSeconds();
+		resetObstacles();
 	};
 
 	var initPage = function () {
-		document.oncontextmenu =new Function("return false;");
-		$('game-canvas').get().oncontextmenu =new Function("return false;");
+		document.oncontextmenu = function() { return false; };
+		canvas.oncontextmenu = function() { return false; };
 		allowMouseEvents = !isTouchDevice();
+		lastT = new Date().getTime() / 1000.0;
 	};
 
 	var init = function() {
 		helloMessage();
 		initPage();
+		initObstacles();
 		initGame();
 		registerEventHandlers();
 		resizeCanvas();
 		initializeAndStartTimer();
 	};
-	
+
 	var initializeAndStartTimer = function() {
-		x_pos = 0;
-		timerID = setInterval( "heartbeat()", 1 );
+		requestAnimationFrame(heartbeat);
 	};
 
 	var handleAction = function() {
@@ -280,7 +320,6 @@
 	};
 
 	var registerEventHandlers = function() {
-		
 		document.addEventListener('keydown', function(event) {
 			log("keydown");
 			handleAction();
@@ -295,280 +334,299 @@
 			log("touchstart");
 			handleAction();
 		}, false);
+
+		window.addEventListener('load', resizeCanvas, false);
+		window.addEventListener('resize', resizeCanvas, false);
+		window.addEventListener('orientationchange', resizeCanvas, false);
 	};
-	
+
 	var flap = function() {
 		started = true;
 		spriteVelocityY = impulse;
 	};
-	
-	var heartbeat = function() {
-		var newT = getSeconds();
+
+	var heartbeat = function(time) {
+		requestAnimationFrame(heartbeat);
+
+		var newT = time/1000.0;
 		var dT = newT - lastT;
 		lastT = newT;
-		
+
 		if(!gameover) {
 			updateState(dT);
-			updateObstacles();			
+			updateObstacles();
 			collisionDetection();
 		}
 
 		draw();
-		
+
 		if(gameover)
 			drawGameOver();
+	};
 
-	};
-	
-	var getSeconds = function() { 
-		return new Date().getTime()/1000.0;
-	};
-	
 	var resizeCanvas = function() {
 		if(ctx.canvas.width != window.innerWidth || ctx.canvas.height != window.innerHeight) {
 			width = window.innerWidth;
 			height = window.innerHeight;
 			ctx.canvas.width  = width;
 			ctx.canvas.height = height;
-			
+
 			spriteScreenSizeX = spriteSizeX * height; // use height to define size.
-			spriteScreenSizeY = spriteSizeY * height;					
+			spriteScreenSizeY = spriteSizeY * height;
 
 			worldWidth = width / height;
 		}
 
-		//var ref = Math.min(width, height)/600;
+		$titleScreen.setAttribute('style',
+				'font-size:' + width * 0.1 +
+				"; -webkit-text-stroke-width:" + width * 0.003);
 
-		$(".title-screen").css("font-size",  width * 0.1);
-		$(".title-screen").css("-webkit-text-stroke-width",  width * 0.003);
+		$gameOverText.setAttribute('style',
+				'font-size:' + width * 0.1 +
+				"; -webkit-text-stroke-width:" + width * 0.003);
 
-		$(".game-over-text").css("font-size",  width * 0.1);
-		$(".game-over-text").css("-webkit-text-stroke-width",  width * 0.003);
-
-		$(".play-again-text").css("font-size",  width * 0.05);
+		$playAgainText.setAttribute('style',
+				'font-size:' + width * 0.05);
 	};
-	
-	var clear = function() {
-		ctx.clearRect(0, 0, canvas.width, canvas.height);
-	};
-	
-	var first = true;
 
-	var draw = function() {	
-		if(first) {
-			log("first frame");
-			first = false;
-		}
+	var draw = function() {
+		log("first frame");
 
-		if(titleScreen && started) {
-			$(".title-screen").fadeOut();
-			$('.social-stuff').fadeOut();
-			titleScreen = false;
-		}
-
-		resizeCanvas();
-		clear();
-		
-
-		var segmentLength = backgroundImageWidth / backgroundImageHeight;
-		var segmentValue = spritePositionX / segmentLength;
-		var residue = segmentValue - Math.floor(segmentValue);
-		var segmentScreenWidth = height / backgroundImageHeight * backgroundImageWidth;
-		var segmentsNeeded = Math.ceil(width/segmentScreenWidth);
-		
-		ctx.globalAlpha = 0.2;
-		if(loadedBackground)
-			for(var i = -segmentsNeeded/2; i<segmentsNeeded/2 + 1; i++) {
-				ctx.drawImage(backgroundImage, (i-residue) * segmentScreenWidth + spriteScreenX,0,segmentScreenWidth+1, height);
+		// Redefine draw after the first frame.
+		draw = function() {
+			if (titleScreen && started) {
+				$titleScreen.setAttribute('class', 'title-screen fade out');
+				$socialStuff.setAttribute('class', 'social-stuff like-button-area fade out');
+				titleScreen = false;
 			}
-		ctx.globalAlpha = 1;
-		
-		ctx.save();
-		var rotX = spriteScreenX + spriteScreenSizeX / 2;
-		var rotY = spriteScreenY + spriteScreenSizeY / 2;
-		ctx.translate(rotX, rotY);
-		ctx.rotate(Math.atan(-spriteVelocityY) * (started?.7:2));
-		ctx.translate(-rotX, -rotY);
-		ctx.drawImage(spriteImage, spriteScreenX, spriteScreenY, spriteScreenSizeX, spriteScreenSizeY);
-		ctx.restore();
 
-		obstacleScreenSizeX = obstacleSizeX * height;
-		obstacleScreenSizeY = obstacleScreenSizeX / obstacleImageWidth * obstacleImageHeight;
-		
-		if(loadedDownImage && loadedUpImage)
-			obstacles.forEach(function(entry) {
+			var segmentLength = backgroundImageWidth / backgroundImageHeight;
+			var segmentValue = spritePositionX / segmentLength;
+			var residue = segmentValue - Math.floor(segmentValue);
+			var segmentScreenWidth = height / backgroundImageHeight * backgroundImageWidth;
+			var segmentsNeeded = Math.ceil(width / segmentScreenWidth);
+
+			if (loadedBackground) {
+				for (var i = -segmentsNeeded / 2; i < segmentsNeeded / 2 + 1.5; i++) {
+					ctx.drawImage(backgroundImage, (i - residue) * segmentScreenWidth + spriteScreenX, 0, segmentScreenWidth + 1, height);
+				}
+			}
+
+			ctx.save();
+			var rotX = spriteScreenX + spriteScreenSizeX / 2;
+			var rotY = spriteScreenY + spriteScreenSizeY / 2;
+			ctx.translate(rotX, rotY);
+			ctx.rotate(Math.atan(-spriteVelocityY) * (started ? .7 : 2));
+			ctx.translate(-rotX, -rotY);
+			ctx.drawImage(spriteImage, spriteScreenX, spriteScreenY, spriteScreenSizeX, spriteScreenSizeY);
+			ctx.restore();
+
+			obstacleScreenSizeX = obstacleSizeX * height;
+			obstacleScreenSizeY = obstacleScreenSizeX / obstacleImageWidth * obstacleImageHeight;
+
+			if (loadedDownImage && loadedUpImage) {
+				for (var i = 0; i < OBSTACLE_POOL_SIZE; i++) {
+					var entry = obstacles[i];
+					if (entry[4] === 0) {
+						continue;
+					}
 					var x = entry[0];
 					var y = entry[1];
 					var dy = entry[2];
-					
-					ctx.drawImage(obstacleDownImage, (x-spritePositionX-obstacleSizeX/2) * height + spriteScreenRelativeLocation * width, (1-(y-dy/2)) * height, obstacleScreenSizeX, obstacleScreenSizeY);
-					ctx.drawImage(obstacleUpImage, (x-spritePositionX-obstacleSizeX/2) * height + spriteScreenRelativeLocation * width, (1-(y+dy/2)) * height - obstacleScreenSizeY, obstacleScreenSizeX, obstacleScreenSizeY);
-				});
-		
-	};
-	
-	
-	
-	var updateState = function(dT) {
 
+					ctx.drawImage(obstacleDownImage, (x - spritePositionX - obstacleSizeX / 2) * height + spriteScreenRelativeLocation * width, (1 - (y - dy / 2)) * height, obstacleScreenSizeX, obstacleScreenSizeY);
+					ctx.drawImage(obstacleUpImage, (x - spritePositionX - obstacleSizeX / 2) * height + spriteScreenRelativeLocation * width, (1 - (y + dy / 2)) * height - obstacleScreenSizeY, obstacleScreenSizeX, obstacleScreenSizeY);
+				}
+			}
+		};
+		draw();
+	};
+
+	var updateState = function(dT) {
 		if(started) {
 			spritePositionY += (spriteVelocityY * dT + 0.5 * g * dT * dT);
-			spriteVelocityY += 1 * g * dT;
+			spriteVelocityY += g * dT;
 		} else {
 			spritePositionY += spriteVelocityY * dT;
-			spriteVelocityY = 0.05* Math.cos(lastT * 2);
+			spriteVelocityY = 0.05 * Math.cos(lastT * 2);
 		}
-		
+
 		spritePositionX += spriteVelocityX * dT;
-		
+
 		// if(spritePositionY < spriteSizeY * 0.5)
 		// 	spritePositionY = spriteSizeY * 0.5;
-			
+
 		spriteScreenX = spriteScreenRelativeLocation * width - 0.5 * spriteScreenSizeX;
 		spriteScreenY = (1-spritePositionY) * height - 0.5 * spriteScreenSizeY;
-		
 	};
-	
+
 	var updateObstacles = function() {
-		
-		if(!started) {		
+		if(!started) {
 			return;
 		}
 
-		var toRemove = [];
-		
-		var i=0;
-		obstacles.forEach(function(entry) {
+		for (var i = 0; i < OBSTACLE_POOL_SIZE; i++) {
+			var entry = obstacles[i];
+			if (entry[4] === 0) {
+				continue;
+			}
 			var x = entry[0];
 			if(x < spritePositionX-worldWidth ) {
-				toRemove.push(i);
+				releaseObstacle();
 			}
-			i++;
-		});
-		
-		toRemove.reverse();
-		
-		toRemove.forEach(function(entry) {
-			obstacles.splice(entry, 1);
-		});
-		
-		var lastObstacle = null;
-		
-		if(obstacles.length != 0) {
-			lastObstacle = obstacles[obstacles.length - 1];
 		}
-		
-		if(lastObstacle == null || lastObstacle[0] < spritePositionX + worldWidth + obstacleDistance) {
-			
-			if(lastObstacle == null) {
-				obstacles.push([spritePositionX + worldWidth/2 + obstacleDistance, nextHeight(), nextAperture(), false]);
+
+		if(lastObstacle[4] === 0 || lastObstacle[0] < spritePositionX + worldWidth + obstacleDistance) {
+			if(lastObstacle[4] === 0) {
+				claimObstacle(spritePositionX + worldWidth/2 + obstacleDistance, nextHeight(), nextAperture(), 0);
 			} else {
-				obstacles.push([lastObstacle[0] + obstacleDistance, nextHeight(), nextAperture(), false]);
+				claimObstacle(lastObstacle[0] + obstacleDistance, nextHeight(), nextAperture(), 0)
 			}
-			
 		}
-		
 	};
-	
+
+	var initObstacles = function() {
+		for (var i = 0; i < OBSTACLE_POOL_SIZE; i++) {
+			obstacles[i] = [0, 0, 0, 0, 0];
+		}
+		// Setup lastObstacle.
+		claimObstacle(0, 0, 0, 0);
+		releaseObstacle();
+	};
+
+	var resetObstacles = function() {
+		while (releaseIndex != claimIndex) {
+			releaseObstacle();
+		}
+	};
+
+	var claimObstacle = function (x, y, aperture, passed) {
+		/* Make sure the whole array is of the same type so that native array types can be used. */
+
+		var obstacle = obstacles[claimIndex++];
+		claimIndex %= OBSTACLE_POOL_SIZE;
+		obstacle[0] = x;
+		obstacle[1] = y;
+		obstacle[2] = aperture;
+		obstacle[3] = passed;
+		obstacle[4] = 1;
+		lastObstacle = obstacle;
+		return obstacle;
+	};
+
+	var releaseObstacle = function () {
+		obstacles[releaseIndex++][4] = 0;
+		releaseIndex %= OBSTACLE_POOL_SIZE;
+	};
+
 	var APERTURE = 0.3;
 	var lastHeight = -1;
-	
+
 	var nextHeight = function() {
 		var candidate = aHeight();
-		
+
 		while(Math.abs(candidate - lastHeight) < 0.3) {
 			candidate = aHeight();
 		}
-		
+
 		lastHeight = candidate;
 		return candidate;
 	};
-	
+
 	var aHeight = function() {
 		var base = 0.05 + APERTURE / 2;
 		var variation = 1 - 0.05 - APERTURE / 2 - base;
 		return variation * Math.random() + base;
 	};
-	
+
 	var nextAperture = function() {
 		return APERTURE;
 	};
-	
-	var collisionDetection = function() {
-		var i=0;
+
+	var collisionDetection = function () {
 		var spriteFactor = 0.7;
 		var spriteFactorY = 0.5;
 
-			if(spritePositionY < spriteSizeY * 0.5) {
-				gameover = true;
-				return;
+		if (spritePositionY < spriteSizeY * 0.5) {
+			gameover = true;
+			return;
+		}
+
+		for (var i = 0; i < OBSTACLE_POOL_SIZE; i++) {
+			var entry = obstacles[i];
+			if (entry[4] === 0) {
+				continue;
 			}
-		
-		obstacles.forEach(function(entry) {
 			var x = entry[0];
-			var spriteLeft = spritePositionX-spriteSizeX/2 * spriteFactor;
-			var spriteRight = spritePositionX+spriteSizeX/2 * spriteFactor;
-			var spriteTop = spritePositionY + spriteSizeX/2 * spriteFactorY;
-			var spriteBottom = spritePositionY - spriteSizeX/2 * spriteFactorY;
-			var obstacleLeft = x - obstacleSizeX/2;
-			var obstacleRight = x + obstacleSizeX/2;
-			if(
-				spriteLeft >= obstacleLeft && spriteLeft <= obstacleRight ||
-				spriteRight >= obstacleLeft && spriteRight <= obstacleRight
-				) {
+			var spriteLeft = spritePositionX - spriteSizeX / 2 * spriteFactor;
+			var spriteRight = spritePositionX + spriteSizeX / 2 * spriteFactor;
+			var spriteTop = spritePositionY + spriteSizeX / 2 * spriteFactorY;
+			var spriteBottom = spritePositionY - spriteSizeX / 2 * spriteFactorY;
+			var obstacleLeft = x - obstacleSizeX / 2;
+			var obstacleRight = x + obstacleSizeX / 2;
+			if (
+					spriteLeft >= obstacleLeft && spriteLeft <= obstacleRight ||
+					spriteRight >= obstacleLeft && spriteRight <= obstacleRight
+			) {
 				var height = entry[1];
 				var aperture = entry[2];
 
-				var apertureTop = height + aperture/2;
-				var apertureBottom = height - aperture/2;
+				var apertureTop = height + aperture / 2;
+				var apertureBottom = height - aperture / 2;
 
-				if(spriteTop>=apertureTop || spriteBottom<=apertureBottom) {									
+				if (spriteTop >= apertureTop || spriteBottom <= apertureBottom) {
 					gameover = true;
 				}
 
 
 			}
-			if(!gameover) {
-				if(spriteLeft > obstacleRight) {
-					if(entry[3] == false) {
+			if (!gameover) {
+				if (spriteLeft > obstacleRight) {
+					if (entry[3] === 0) {
 						setScore(score + 10);
-						entry[3] = true;
+						entry[3] = 1;
 					}
 				}
 			}
-			i++;
-		});
+		}
 	};
 
 	var setScore = function(value) {
 		score = value;
-		$(".score-text").text(score);
+		requestAnimationFrame(function() {
+			$scoreText.textContent = score;
+		});
 	};
 
-	var drawGameOver = function() {
-		
-		if(!gameOverDisplayed) {
+	var drawGameOver = function () {
+		if (!gameOverDisplayed) {
 			gameOverDisplayed = true;
-			$('.game-over').fadeIn();
-			$('.game-canvas').addClass('game-over-color');
-			window.setTimeout(function() {
-				$(".play-again-text").fadeIn();
-				$('.social-stuff').fadeIn();
-				readyToRestart = true;
-				log("readyToRestart");
-			}, 1000);
-		}
 
-		//ctx.fillStyle = "#FF0000"
-		//ctx.fillRect(0, 0, width, height);
+			requestAnimationFrame(function () {
+				$gameOver.setAttribute('class', 'game-over fade');
+				$gameCanvas.setAttribute('class', 'game-canvas noselect game-over-color');
+
+				setTimeout(function () {
+					readyToRestart = true;
+					log("readyToRestart");
+
+					requestAnimationFrame(function () {
+						$playAgainText.setAttribute('class', 'play-again-text fade');
+						$socialStuff.setAttribute('class', 'social-stuff like-button-area fade');
+					});
+				}, 1000)
+			});
+		}
 	};
 
 	var resetGame = function() {
 		initGame();
 
-		$(".play-again-text").fadeOut();
-		$('.game-over').fadeOut();
-		$('.game-canvas').removeClass('game-over-color');
+		requestAnimationFrame(function() {
+			$playAgainText.setAttribute('class', 'play-again-text fade out');
+			$gameOver.setAttribute('class', 'game-over fade out');
+			$gameCanvas.setAttribute('class', 'game-canvas noselect');
+		});
 	};
 
 	var helloMessage = function() {
@@ -593,10 +651,11 @@
 		} catch (e) {
 			return false;
 		}
-	}
+	};
 
 	init();
 
 </script>
 
-<body>
+</body>
+</html>
