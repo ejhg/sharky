@@ -1,294 +1,288 @@
 <html>
 <head>
-	<script src="http://ajax.googleapis.com/ajax/libs/jquery/2.1.1/jquery.min.js"></script>
-	<link href='http://fonts.googleapis.com/css?family=Arvo:400,700' rel='stylesheet' type='text/css'>
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/2.1.1/jquery.min.js"></script>
+    <link href='https://fonts.googleapis.com/css?family=Arvo:400,700' rel='stylesheet' type='text/css'>
 </head>
 <body style="margin:0; padding:0;">
 
-	<canvas id="gameCanvas" style="background-color:blue;width:100%;height:100%">
-	</canvas>
+<canvas id="gameCanvas" style="background-color:blue;width:100%;height:100%">
+</canvas>
 
-	<img id="sprite" src = "img/sprite.png" style="display:none;">
-	<img id="background" src = "img/background.png" style="display:none;">
-	<img id="obstacleDown" src = "img/obstacle-down.png" style="display:none;">
-	<img id="obstacleUp" src = "img/obstacle-up.png" style="display:none;">
+<img id="sprite" src="img/sprite.png" style="display:none;">
+<img id="background" src="img/background.png" style="display:none;">
+<img id="obstacleDown" src="img/obstacle-down.png" style="display:none;">
+<img id="obstacleUp" src="img/obstacle-up.png" style="display:none;">
 
-	<div id="gameover" style="position:fixed;left:0;top:40%;right:0;bottom:0;color:red;font-size:xx-large;text-align:center;font-family: 'Arvo', serif;font-weight:bold;display:none;-webkit-text-stroke: 1.5px black;">GAME OVER</div>
+<div id="gameover"
+     style="position:fixed;left:0;top:40%;right:0;bottom:0;color:red;font-size:xx-large;text-align:center;font-family: 'Arvo', serif;font-weight:bold;display:none;-webkit-text-stroke: 1.5px black;">
+    GAME OVER
+</div>
 <script>
 
-	var canvas = document.getElementById("gameCanvas");
-	var ctx = canvas.getContext("2d");
-		
-	var spriteImage = document.getElementById("sprite");
-	var backgroundImage = document.getElementById("background");
-	var obstacleDownImage = document.getElementById("obstacleDown");
-	var obstacleUpImage = document.getElementById("obstacleUp");
-	var backgroundImageWidth;
-	var backgroundImageHeight;
-	var obstacleImageWidth;
-	var obstacleImageHeight;
-	
-	backgroundImage.onload=function(){
-		backgroundImageWidth = backgroundImage.naturalWidth;
-		backgroundImageHeight = backgroundImage.naturalHeight;
-	}
-	
-	obstacleDownImage.onload=function(){
-		obstacleImageWidth = obstacleDownImage.naturalWidth;
-		obstacleImageHeight = obstacleDownImage.naturalHeight;		
-	}
-	
-	var g = -4;
-	var impulse = 1.1;
-	
-	var spritePositionX = 0;
-	var spritePositionY = 0.7;
-	var spriteVelocityX = 0.3;
-	var spriteVelocityY = 0;
-	var spriteSizeX = .1;
-	var spriteSizeY = .1;
-	
-	var obstacleDistance = 0.5;
-	var obstacleSizeX = 0.15;
-	var obstacleScreenSizeX;
-	
-	var lastT;
-	
-	var spriteScreenX, spriteScreenY, worldX;
-	var spriteScreenSizeX, spriteScreenSizeY;
-	
-	var started = false;
-	var gameover = false;
-	var gameOverDisplayed = false;
+  var canvas = document.getElementById("gameCanvas");
+  var ctx = canvas.getContext("2d");
 
-	var obstacles = []; // position, altitude, width;
-	
-	var width, height;
-	
-	var init = function() {
-		lastT = getSeconds();
-		registerEventHandlers();
-		resizeCanvas();
-		initializeAndStartTimer();
-	}
-	
-	var initializeAndStartTimer = function() {
-		x_pos = 0;
-		timerID = setInterval( "heartbeat()", 1 );
-	};
-	
-	var registerEventHandlers = function() {
-		document.addEventListener('keydown', function(event) {
-			flap();
-		}, false);
-		document.addEventListener('mousedown', function(event) {
-			flap();
-		}, false);
-		document.addEventListener('touchstart', function(e){
-			flap();
-		}, false);
-	}
-	
-	var flap = function() {
-		started = true;
-		spriteVelocityY = impulse;
-	}
-	
-	var heartbeat = function() {
-		var newT = getSeconds();
-		var dT = newT - lastT;
-		lastT = newT;
-		
-		if(!gameover) {
-			updateState(dT);
-			updateObstacles();			
-			collisionDetection();
-		}
+  var spriteImage = document.getElementById("sprite");
+  var backgroundImage = document.getElementById("background");
+  var obstacleDownImage = document.getElementById("obstacleDown");
+  var obstacleUpImage = document.getElementById("obstacleUp");
+  var backgroundImageWidth;
+  var backgroundImageHeight;
+  var obstacleImageWidth;
+  var obstacleImageHeight;
 
-		draw();
-		
-		if(gameover)
-			drawGameOver();
+  backgroundImage.onload = function () {
+    backgroundImageWidth = backgroundImage.naturalWidth;
+    backgroundImageHeight = backgroundImage.naturalHeight;
+  }
 
-	};
-	
-	var getSeconds = function() { 
-		return new Date().getTime()/1000.0;
-	};
-	
-	var resizeCanvas = function() {
-		if(ctx.canvas.width != window.innerWidth || ctx.canvas.height != window.innerHeight) {
-			width = window.innerWidth;
-			height = window.innerHeight;
-			ctx.canvas.width  = width;
-			ctx.canvas.height = height;
-			
-			spriteScreenSizeX = spriteSizeX * height; // use height to define size.
-			spriteScreenSizeY = spriteSizeY * height;					
+  obstacleDownImage.onload = function () {
+    obstacleImageWidth = obstacleDownImage.naturalWidth;
+    obstacleImageHeight = obstacleDownImage.naturalHeight;
+  }
 
-			worldWidth = width / height;
-		}
-	}
-	
-	var clear = function() {
-		ctx.clearRect(0, 0, canvas.width, canvas.height);
-	}
-	
-	var draw = function() {	
-		resizeCanvas();
-		clear();
-		
-		var segmentLength = backgroundImageWidth / backgroundImageHeight;
-		var segmentValue = spritePositionX / segmentLength;
-		var residue = segmentValue - Math.floor(segmentValue);
-		var segmentScreenWidth = height / backgroundImageHeight * backgroundImageWidth;
-		var segmentsNeeded = Math.ceil(width/segmentScreenWidth);
-		
-		for(var i = -segmentsNeeded/2; i<segmentsNeeded/2 + 1; i++) {
-			ctx.drawImage(backgroundImage, (i-residue) * segmentScreenWidth + spriteScreenX,0,segmentScreenWidth+1, height);
-		}
-		
-		
-		ctx.drawImage(spriteImage, spriteScreenX, spriteScreenY, spriteScreenSizeX, spriteScreenSizeY);
-		
-		obstacleScreenSizeX = obstacleSizeX * height;
-		obstacleScreenSizeY = obstacleScreenSizeX / obstacleImageWidth * obstacleImageHeight;
-		
-		obstacles.forEach(function(entry) {
-			var x = entry[0];
-			var y = entry[1];
-			var dy = entry[2];
-			
-			ctx.drawImage(obstacleDownImage, (x-spritePositionX-obstacleSizeX) * height + spriteScreenX, (1-(y-dy/2)) * height, obstacleScreenSizeX, obstacleScreenSizeY);
-			ctx.drawImage(obstacleUpImage, (x-spritePositionX-obstacleSizeX) * height + spriteScreenX, (1-(y+dy/2)) * height - obstacleScreenSizeY, obstacleScreenSizeX, obstacleScreenSizeY);
-		});
-		
-	};
-	
-	
-	
-	var updateState = function(dT) {
+  var g = -4;
+  var impulse = 1.1;
 
-		if(started) {
-			spritePositionY += (spriteVelocityY * dT + 0.5 * g * dT * dT);
-			spriteVelocityY += 1 * g * dT;
-		}
-		
-		spritePositionX += spriteVelocityX * dT;
-		
-		if(spritePositionY < spriteSizeY * 0.5)
-			spritePositionY = spriteSizeY * 0.5;
-			
-		spriteScreenX = 0.5 * width - 0.5 * spriteScreenSizeX;
-		spriteScreenY = (1-spritePositionY) * height - 0.5 * spriteScreenSizeY;
-		
-	};
-	
-	var updateObstacles = function() {
-		
-		if(!started) return;
-		
-		var toRemove = [];
-		
-		var i=0;
-		obstacles.forEach(function(entry) {
-			var x = entry[0];
-			if(x < spritePositionX-worldWidth ) {
-				toRemove.push(i);
-			}
-			i++;
-		});
-		
-		toRemove.reverse();
-		
-		toRemove.forEach(function(entry) {
-			obstacles.splice(entry, 1);
-		});
-		
-		var lastObstacle = null;
-		
-		if(obstacles.length != 0) {
-			lastObstacle = obstacles[obstacles.length - 1];
-		}
-		
-		if(lastObstacle == null || lastObstacle[0] < spritePositionX + worldWidth + obstacleDistance) {
-			
-			if(lastObstacle == null) {
-				obstacles.push([spritePositionX + worldWidth/2 + obstacleDistance, nextHeight(), nextAperture()]);
-			} else {
-				obstacles.push([lastObstacle[0] + obstacleDistance, nextHeight(), nextAperture()]);
-			}
-			
-		}
-		
-	}
-	
-	var APERTURE = 0.3;
-	var lastHeight = -1;
-	
-	var nextHeight = function() {
-		var candidate = aHeight();
-		
-		while(Math.abs(candidate - lastHeight) < 0.3) {
-			candidate = aHeight();
-		}
-		
-		lastHeight = candidate;
-		return candidate;
-	}
-	
-	var aHeight = function() {
-		var base = 0.05 + APERTURE / 2;
-		var variation = 1 - 0.05 - APERTURE / 2 - base;
-		return variation * Math.random() + base;
-	}
-	
-	var nextAperture = function() {
-		return APERTURE;
-	}
-	
-	var collisionDetection = function() {
-		var i=0;
-		obstacles.forEach(function(entry) {
-			var x = entry[0];
-			var spriteLeft = spritePositionX-spriteSizeX/2;
-			var spriteRight = spritePositionX+spriteSizeX/2;
-			var obstacleLeft = x - obstacleSizeX/2;
-			var obstacleRight = x + obstacleSizeX/2;
-			if(
-				spriteLeft >= obstacleLeft && spriteLeft <= obstacleRight ||
-				spriteRight >= obstacleLeft && spriteRight <= obstacleRight
-				) {
-				var height = entry[1];
-				var aperture = entry[2];
+  var spritePositionX = 0;
+  var spritePositionY = 0.7;
+  var spriteVelocityX = 0.3;
+  var spriteVelocityY = 0;
+  var spriteSizeX = .1;
+  var spriteSizeY = .1;
 
-				var spriteTop = spritePositionY + spriteSizeX/2;
-				var spriteBottom = spritePositionY - spriteSizeX/2;
-				var apertureTop = height + aperture/2;
-				var apertureTop = height - aperture/2;
+  var obstacleDistance = 0.5;
+  var obstacleSizeX = 0.15;
+  var obstacleScreenSizeX;
 
-				if(spritePositionY > height - aperture/2 && spritePositionY < height + aperture/2) {
+  var lastT;
 
-				} else {
-					gameover = true;
-				}
-			}
-			i++;
-		});
-	}
+  var spriteScreenX, spriteScreenY, worldX;
+  var spriteScreenSizeX, spriteScreenSizeY;
 
-	var drawGameOver = function() {
-		
-		if(!gameOverDisplayed) {
-			gameOverDisplayed = true;
-			$('#gameover').fadeIn();
-		}
+  var started = false;
+  var gameover = false;
+  var gameOverDisplayed = false;
 
-		//ctx.fillStyle = "#FF0000"
-		//ctx.fillRect(0, 0, width, height);
-	}
+  var obstacles = []; // position, altitude, width;
 
-	init();
+  var width, height;
+
+  var init = function () {
+    lastT = getSeconds();
+    registerEventHandlers();
+    resizeCanvas();
+    initializeAndStartTimer();
+  }
+
+  var initializeAndStartTimer = function () {
+    x_pos = 0;
+    timerID = setInterval("heartbeat()", 1);
+  };
+
+  var registerEventHandlers = function () {
+    document.addEventListener('keydown', function (event) {
+      flap();
+    }, false);
+    document.addEventListener('mousedown', function (event) {
+      flap();
+    }, false);
+    document.addEventListener('touchstart', function (e) {
+      flap();
+    }, false);
+  }
+
+  var flap = function () {
+    started = true;
+    spriteVelocityY = impulse;
+  }
+
+  var heartbeat = function () {
+    var newT = getSeconds();
+    var dT = newT - lastT;
+    lastT = newT;
+
+    if (!gameover) {
+      updateState(dT);
+      updateObstacles();
+      collisionDetection();
+    }
+
+    draw();
+
+    if (gameover)
+      drawGameOver();
+
+  };
+
+  var getSeconds = function () {
+    return new Date().getTime() / 1000.0;
+  };
+
+  var resizeCanvas = function () {
+    if (ctx.canvas.width != window.innerWidth || ctx.canvas.height != window.innerHeight) {
+      width = window.innerWidth;
+      height = window.innerHeight;
+      ctx.canvas.width = width;
+      ctx.canvas.height = height;
+
+      spriteScreenSizeX = spriteSizeX * height; // use height to define size.
+      spriteScreenSizeY = spriteSizeY * height;
+
+      worldWidth = width / height;
+    }
+  }
+
+  var clear = function () {
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+  }
+
+  var draw = function () {
+    resizeCanvas();
+    clear();
+
+    var segmentLength = backgroundImageWidth / backgroundImageHeight;
+    var segmentValue = spritePositionX / segmentLength;
+    var residue = segmentValue - Math.floor(segmentValue);
+    var segmentScreenWidth = height / backgroundImageHeight * backgroundImageWidth;
+    var segmentsNeeded = Math.ceil(width / segmentScreenWidth);
+
+    for (var i = -segmentsNeeded / 2; i < segmentsNeeded / 2 + 1; i++) {
+      ctx.drawImage(backgroundImage, (i - residue) * segmentScreenWidth + spriteScreenX, 0, segmentScreenWidth + 1, height);
+    }
+
+
+    ctx.drawImage(spriteImage, spriteScreenX, spriteScreenY, spriteScreenSizeX, spriteScreenSizeY);
+
+    obstacleScreenSizeX = obstacleSizeX * height;
+    obstacleScreenSizeY = obstacleScreenSizeX / obstacleImageWidth * obstacleImageHeight;
+
+    obstacles.forEach(function (entry) {
+      var x = entry[0];
+      var y = entry[1];
+      var dy = entry[2];
+
+      ctx.drawImage(obstacleDownImage, (x - spritePositionX - obstacleSizeX) * height + spriteScreenX, (1 - (y - dy / 2)) * height, obstacleScreenSizeX, obstacleScreenSizeY);
+      ctx.drawImage(obstacleUpImage, (x - spritePositionX - obstacleSizeX) * height + spriteScreenX, (1 - (y + dy / 2)) * height - obstacleScreenSizeY, obstacleScreenSizeX, obstacleScreenSizeY);
+    });
+
+  };
+
+
+  var updateState = function (dT) {
+
+    if (started) {
+      spritePositionY += (spriteVelocityY * dT + 0.5 * g * dT * dT);
+      spriteVelocityY += 1 * g * dT;
+    }
+
+    spritePositionX += spriteVelocityX * dT;
+
+    if (spritePositionY < spriteSizeY * 0.5)
+      spritePositionY = spriteSizeY * 0.5;
+
+    spriteScreenX = 0.5 * width - 0.5 * spriteScreenSizeX;
+    spriteScreenY = (1 - spritePositionY) * height - 0.5 * spriteScreenSizeY;
+
+  };
+
+  var updateObstacles = function () {
+
+    if (!started) return;
+
+    var toRemove = [];
+
+    var i = 0;
+    obstacles.forEach(function (entry) {
+      var x = entry[0];
+      if (x < spritePositionX - worldWidth) {
+        toRemove.push(i);
+      }
+      i++;
+    });
+
+    toRemove.reverse();
+
+    toRemove.forEach(function (entry) {
+      obstacles.splice(entry, 1);
+    });
+
+    var lastObstacle = null;
+
+    if (obstacles.length != 0) {
+      lastObstacle = obstacles[obstacles.length - 1];
+    }
+
+    if (lastObstacle == null || lastObstacle[0] < spritePositionX + worldWidth + obstacleDistance) {
+
+      if (lastObstacle == null) {
+        obstacles.push([spritePositionX + worldWidth / 2 + obstacleDistance, nextHeight(), nextAperture()]);
+      } else {
+        obstacles.push([lastObstacle[0] + obstacleDistance, nextHeight(), nextAperture()]);
+      }
+
+    }
+
+  }
+
+  var APERTURE = 0.3;
+  var lastHeight = -1;
+
+  var nextHeight = function () {
+    var candidate = aHeight();
+
+    while (Math.abs(candidate - lastHeight) < 0.3) {
+      candidate = aHeight();
+    }
+
+    lastHeight = candidate;
+    return candidate;
+  }
+
+  var aHeight = function () {
+    var base = 0.05 + APERTURE / 2;
+    var variation = 1 - 0.05 - APERTURE / 2 - base;
+    return variation * Math.random() + base;
+  }
+
+  var nextAperture = function () {
+    return APERTURE;
+  }
+
+  var collisionDetection = function () {
+    var i = 0;
+    obstacles.forEach(function (entry) {
+      var x = entry[0];
+      var spriteLeft = spritePositionX - spriteSizeX / 2;
+      var spriteRight = spritePositionX + spriteSizeX / 2;
+      var obstacleLeft = x - obstacleSizeX / 2;
+      var obstacleRight = x + obstacleSizeX / 2;
+      if (
+        spriteLeft >= obstacleLeft && spriteLeft <= obstacleRight ||
+        spriteRight >= obstacleLeft && spriteRight <= obstacleRight
+      ) {
+        var height = entry[1];
+        var aperture = entry[2];
+
+        if (spritePositionY > height - aperture / 2 && spritePositionY < height + aperture / 2) {
+
+        } else {
+          gameover = true;
+        }
+      }
+      i++;
+    });
+  }
+
+  var drawGameOver = function () {
+
+    if (!gameOverDisplayed) {
+      gameOverDisplayed = true;
+      $('#gameover').fadeIn();
+    }
+  }
+
+  init();
 
 </script>
 

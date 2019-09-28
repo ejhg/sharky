@@ -1,659 +1,664 @@
 <html>
 <head>
-	<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
-	<link href='http://fonts.googleapis.com/css?family=Arvo:400,700' rel='stylesheet' type='text/css'>
-	<style>
-		body {
-			position: fixed;
-			margin:0;
-			padding:0;
-			top: 0;
-			left: 0;
-			right: 0;
-			bottom: 0;
-			background: red;
-		}
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+    <link href='https://fonts.googleapis.com/css?family=Arvo:400,700' rel='stylesheet' type='text/css'>
+    <style>
+        body {
+            position: fixed;
+            margin: 0;
+            padding: 0;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: red;
+        }
 
-		.noselect {
-			-webkit-touch-callout: none;
-			-webkit-user-select: none;
-			-khtml-user-select: none;
-			-moz-user-select: none;
-			-ms-user-select: none;
-			user-select: none;
-			cursor: pointer;
-			-webkit-tap-highlight-color: rgba(0, 0, 0, 0);
-		}
+        .noselect {
+            -webkit-touch-callout: none;
+            -webkit-user-select: none;
+            -khtml-user-select: none;
+            -moz-user-select: none;
+            -ms-user-select: none;
+            user-select: none;
+            cursor: pointer;
+            -webkit-tap-highlight-color: rgba(0, 0, 0, 0);
+        }
 
-		.game-canvas {
-			position: fixed;
-			background-color:#0080A3;
-			top: 0;
-			left: 0;
-			right: 0;
-			bottom: 0;
-			transition: background-color 0.3s linear;
-		}
+        .game-canvas {
+            position: fixed;
+            background-color: #0080a3;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            transition: background-color 0.3s linear;
+        }
 
-		.game-over-text {
-			color:orangered;
-			font-size:200px;
-			text-align:center;
-			font-family: 'Arvo', serif;
-			font-weight:bold;
-			-webkit-text-stroke: 3px white;
-			text-shadow: 5px 5px black;
-		}
+        .game-over-text {
+            color: orangered;
+            font-size: 200px;
+            text-align: center;
+            font-family: 'Arvo', serif;
+            font-weight: bold;
+            -webkit-text-stroke: 3px white;
+            text-shadow: 5px 5px black;
+        }
 
-		.play-again-text {
-			color: white;
-			font-family: Arial, sans-serif;
-			font-size: 50px;
-			text-align: center;
-		}
+        .play-again-text {
+            color: white;
+            font-family: Arial, sans-serif;
+            font-size: 50px;
+            text-align: center;
+        }
 
-		.score-text {
-			position: fixed;
-			left: auto;
-			top: 0.3em;
-			right: 0.3em;
-			bottom: 0;
-			color:white;
-			font-family: 'Arvo', serif;
-			font-weight:bold;
-			font-size: 5em;
-			-webkit-text-stroke: 1px black;
-		}
+        .score-text {
+            position: fixed;
+            left: auto;
+            top: 0.3em;
+            right: 0.3em;
+            bottom: 0;
+            color: white;
+            font-family: 'Arvo', serif;
+            font-weight: bold;
+            font-size: 5em;
+            -webkit-text-stroke: 1px black;
+        }
 
-		.title-screen {
-			position: fixed;
-			left: 0;
-			top: 40%;
-			right: 0;
-			bottom: 0;
-			color: orange;
-			font-size: 150px;
-			text-align: center;
-			font-family: 'Arvo', serif;
-			font-weight: bold;
-			-webkit-text-stroke: 3px white;
-			text-shadow: 5px 5px black;
-		}
+        .title-screen {
+            position: fixed;
+            left: 0;
+            top: 40%;
+            right: 0;
+            bottom: 0;
+            color: orange;
+            font-size: 150px;
+            text-align: center;
+            font-family: 'Arvo', serif;
+            font-weight: bold;
+            -webkit-text-stroke: 3px white;
+            text-shadow: 5px 5px black;
+        }
 
-		.fade {
-			opacity:  1.0;
-			transition: opacity 0.3s;
-			-webkit-transition: opacity 0.3s;
-			-moz-transition: opacity 0.3s;
-			-o-transition: opacity 0.3s;
-		}
+        .fade {
+            opacity: 1.0;
+            transition: opacity 0.3s;
+            -webkit-transition: opacity 0.3s;
+            -moz-transition: opacity 0.3s;
+            -o-transition: opacity 0.3s;
+        }
 
-		.fade.out {
-			opacity: 0.0;
-		}
+        .fade.out {
+            opacity: 0.0;
+        }
 
-		.like-button-area {
-			position: fixed;
-			left: 3em;
-			top: 90%;
-		}
+        .like-button-area {
+            position: fixed;
+            left: 3em;
+            top: 90%;
+        }
 
-		.social-stuff {
+        .social-stuff {
 
-		}
+        }
 
-		.fb_iframe_widget iframe
-		{
-			transform: scale(2) rotate(-90deg);
-			-ms-transform: scale(2) rotate(-90deg);
-			-webkit-transform: scale(2) rotate(-90deg);
-			-o-transform: scale(2) rotate(-90deg);
-			-moz-transform: scale(2) rotate(-90deg);
+        .fb_iframe_widget iframe {
+            transform: scale(2) rotate(-90deg);
+            -ms-transform: scale(2) rotate(-90deg);
+            -webkit-transform: scale(2) rotate(-90deg);
+            -o-transform: scale(2) rotate(-90deg);
+            -moz-transform: scale(2) rotate(-90deg);
 
-			transform-origin: bottom left;
-			-ms-transform-origin: bottom left;
-			-webkit-transform-origin: bottom left;
-			-moz-transform-origin: bottom left;
-			-webkit-transform-origin: bottom left;
-		}
+            transform-origin: bottom left;
+            -ms-transform-origin: bottom left;
+            -webkit-transform-origin: bottom left;
+            -moz-transform-origin: bottom left;
+            -webkit-transform-origin: bottom left;
+        }
 
-		.game-over-color {
-			background: purple;
-		}
-	</style>
+        .game-over-color {
+            background: purple;
+        }
+    </style>
 </head>
 <body class="noselect">
-       <canvas id="game-canvas" class="game-canvas noselect">
-       </canvas>
-       <div id="title-screen" class="title-screen fade">SHARKY'S ADVENTURE I</div>
+<canvas id="game-canvas" class="game-canvas noselect">
+</canvas>
+<div id="title-screen" class="title-screen fade">SHARKY'S ADVENTURE I</div>
 
-       <div class="game-over fade out" id="game-over" style="position: fixed; left:0;top:40%;right:0;bottom:0;">
-               <div id="game-over-text" class="game-over-text">GAME OVER</div>
-               <div id="play-again-text" class="play-again-text">play again</div>
-       </div>
+<div class="game-over fade out" id="game-over" style="position: fixed; left:0;top:40%;right:0;bottom:0;">
+    <div id="game-over-text" class="game-over-text">GAME OVER</div>
+    <div id="play-again-text" class="play-again-text">play again</div>
+</div>
 
-       <div id="score-text" class="score-text" style="">0</div>
+<div id="score-text" class="score-text" style="">0</div>
 
-	   <script>
-		   window.fbAsyncInit = function() {
-			   FB.init({
-				   appId      : '477798752368945',
-				   xfbml      : true,
-				   version    : 'v2.3'
-			   });
-		   };
+<script>
+  window.fbAsyncInit = function () {
+    FB.init({
+      appId: '477798752368945',
+      xfbml: true,
+      version: 'v2.3'
+    });
+  };
 
-		   (function(d, s, id){
-			   var js, fjs = d.getElementsByTagName(s)[0];
-			   if (d.getElementById(id)) {return;}
-			   js = d.createElement(s); js.id = id;
-			   js.src = "//connect.facebook.net/en_US/sdk.js";
-			   fjs.parentNode.insertBefore(js, fjs);
-		   }(document, 'script', 'facebook-jssdk'));
-	   </script>
+  (function (d, s, id) {
+    var js, fjs = d.getElementsByTagName(s)[0];
+    if (d.getElementById(id)) {
+      return;
+    }
+    js = d.createElement(s);
+    js.id = id;
+    js.src = "//connect.facebook.net/en_US/sdk.js";
+    fjs.parentNode.insertBefore(js, fjs);
+  }(document, 'script', 'facebook-jssdk'));
+</script>
 
-	   <div id="social-stuff" class="like-button-area social-stuff fade">
-		   <div id="fb-root"></div>
-		   <script>(function(d, s, id) {
-			   var js, fjs = d.getElementsByTagName(s)[0];
-			   if (d.getElementById(id)) return;
-			   js = d.createElement(s); js.id = id;
-			   js.src = "//connect.facebook.net/en_US/sdk.js#xfbml=1&version=v2.3&appId=477798752368945";
-			   fjs.parentNode.insertBefore(js, fjs);
-		   }(document, 'script', 'facebook-jssdk'));</script>
-		   <div class="fb-like" data-href="http://sharky.co" data-width="400" data-layout="button_count" data-action="like" data-show-faces="true" data-share="true"></div>
-	   </div>
+<div id="social-stuff" class="like-button-area social-stuff fade">
+    <div id="fb-root"></div>
+    <script>(function (d, s, id) {
+      var js, fjs = d.getElementsByTagName(s)[0];
+      if (d.getElementById(id)) return;
+      js = d.createElement(s);
+      js.id = id;
+      js.src = "//connect.facebook.net/en_US/sdk.js#xfbml=1&version=v2.3&appId=477798752368945";
+      fjs.parentNode.insertBefore(js, fjs);
+    }(document, 'script', 'facebook-jssdk'));</script>
+    <div class="fb-like" data-href="http://sharky.co" data-width="400" data-layout="button_count" data-action="like"
+         data-show-faces="true" data-share="true"></div>
+</div>
 
 <script>
 
-	var debug = false;
-
-	var $titleScreen = document.getElementById('title-screen');
-	var $gameOverText = document.getElementById('game-over-text');
-	var $playAgainText = document.getElementById('play-again-text');
-	var $socialStuff = document.getElementById('social-stuff');
-	var $scoreText = document.getElementById('score-text');
-	var $gameOver = document.getElementById('game-over');
-	var $gameCanvas = document.getElementById('game-canvas');
-
-	var canvas = document.getElementById("game-canvas");
-	var ctx = canvas.getContext("2d");
-
-	var spriteImage = new Image();
-	var backgroundImage = new Image();
-	var obstacleDownImage =  new Image();
-	var obstacleUpImage =  new Image();
-	var backgroundImageWidth;
-	var backgroundImageHeight;
-	var obstacleImageWidth;
-	var obstacleImageHeight;
-
-	var loadedBackground = false;
-	var loadedDownImage = false;
-	var loadedUpImage = false;
-
-	var spriteScreenRelativeLocation = 0.3;
-
-	var allowMouseEvents = true;
-
-	backgroundImage.onload = function(){
-		backgroundImageWidth = backgroundImage.naturalWidth;
-		backgroundImageHeight = backgroundImage.naturalHeight;
-		loadedBackground = true;
-
-		// Pre-render the lowered alpha of the background image to avoid needing to do the transformation on each tick.
-		var offscreenCanvas = document.createElement('canvas');
-		offscreenCanvas.width = backgroundImageWidth;
-		offscreenCanvas.height = backgroundImageHeight;
-		var offscreenContext = offscreenCanvas.getContext('2d');
-		offscreenContext.fillStyle = "#0080A3";
-		offscreenContext.fillRect(0, 0, backgroundImageWidth, backgroundImageHeight);
-		offscreenContext.globalAlpha = 0.2;
-		offscreenContext.drawImage(backgroundImage, 0, 0, backgroundImageWidth, backgroundImageHeight);
-		offscreenContext.globalAlpha = 1;
-		backgroundImage = offscreenCanvas;
-
-		log("loaded background");
-	};
-
-	obstacleDownImage.onload = function(){
-		obstacleImageWidth = obstacleDownImage.naturalWidth;
-		obstacleImageHeight = obstacleDownImage.naturalHeight;
-		loadedDownImage = true;
-		log("loaded down image");
-	};
-
-	obstacleUpImage.onload = function(){
-		obstacleImageWidth = obstacleDownImage.naturalWidth;
-		obstacleImageHeight = obstacleDownImage.naturalHeight;
-		loadedUpImage = true;
-		log("loaded up image");
-	};
-
-	spriteImage.src = "img/sprite.png";
-	backgroundImage.src = "img/background.jpg";
-	obstacleDownImage.src = "img/obstacle-down.png";
-	obstacleUpImage.src = "img/obstacle-up.png";
-
-	var g = -4;
-	var impulse = 1.1;
-
-	var spritePositionX = 0;
-	var spritePositionY = 0.7;
-	var spriteVelocityX = 0.3;
-	var spriteVelocityY = 0;
-	var spriteSizeX = .1;
-	var spriteSizeY = .1;
-
-	var obstacleDistance = 0.5;
-	var obstacleSizeX = 0.15;
-	var obstacleScreenSizeX;
-	var obstacleScreenSizeY;
-
-	var lastT;
-
-	var spriteScreenX, spriteScreenY, worldX;
-	var spriteScreenSizeX, spriteScreenSizeY;
-
-	var score;
-
-	var started = false;
-	var gameover = false;
-	var gameOverDisplayed = false;
-	var titleScreen = true;
-	var readyToRestart = false;
-
-	// By reusing obstacle definitions, we avoid garbage collection for these arrays that can be re-used anyway.
-	var OBSTACLE_POOL_SIZE = 8;
-	var claimIndex = 0;
-	var releaseIndex = 0;
-	var lastObstacle;
-	var obstacles = []; // position, altitude, width;
-
-	var width, height, worldWidth;
-
-	var initGame = function() {
-		spritePositionX = 0;
-	 	spritePositionY = 0.7;
-		spriteVelocityX = 0.3;
-		spriteVelocityY = 0;
-
-	 	started = false;
-		gameover = false;
-		gameOverDisplayed = false;
-		titleScreen = true;
-		readyToRestart = false;
-
-		setScore(0);
-
-		resetObstacles();
-	};
-
-	var initPage = function () {
-		document.oncontextmenu = function() { return false; };
-		canvas.oncontextmenu = function() { return false; };
-		allowMouseEvents = !isTouchDevice();
-		lastT = new Date().getTime() / 1000.0;
-	};
-
-	var init = function() {
-		helloMessage();
-		initPage();
-		initObstacles();
-		initGame();
-		registerEventHandlers();
-		resizeCanvas();
-		initializeAndStartTimer();
-	};
-
-	var initializeAndStartTimer = function() {
-		requestAnimationFrame(heartbeat);
-	};
-
-	var handleAction = function() {
-		if(readyToRestart) {
-			resetGame();
-		} else {
-			if(!gameover)
-				flap();
-		}
-	};
-
-	var registerEventHandlers = function() {
-		document.addEventListener('keydown', function(event) {
-			log("keydown");
-			handleAction();
-		}, false);
-		document.addEventListener('mousedown', function(event) {
-			if(allowMouseEvents) {
-				log("mousedown");
-				handleAction();
-			}
-		}, false);
-		document.addEventListener('touchstart', function(e){
-			log("touchstart");
-			handleAction();
-		}, false);
-
-		window.addEventListener('load', resizeCanvas, false);
-		window.addEventListener('resize', resizeCanvas, false);
-		window.addEventListener('orientationchange', resizeCanvas, false);
-	};
-
-	var flap = function() {
-		started = true;
-		spriteVelocityY = impulse;
-	};
-
-	var heartbeat = function(time) {
-		requestAnimationFrame(heartbeat);
-
-		var newT = time/1000.0;
-		var dT = newT - lastT;
-		lastT = newT;
-
-		if(!gameover) {
-			updateState(dT);
-			updateObstacles();
-			collisionDetection();
-		}
-
-		draw();
-
-		if(gameover)
-			drawGameOver();
-	};
-
-	var resizeCanvas = function() {
-		if(ctx.canvas.width != window.innerWidth || ctx.canvas.height != window.innerHeight) {
-			width = window.innerWidth;
-			height = window.innerHeight;
-			ctx.canvas.width  = width;
-			ctx.canvas.height = height;
-
-			spriteScreenSizeX = spriteSizeX * height; // use height to define size.
-			spriteScreenSizeY = spriteSizeY * height;
-
-			worldWidth = width / height;
-		}
-
-		$titleScreen.setAttribute('style',
-				'font-size:' + width * 0.1 +
-				"; -webkit-text-stroke-width:" + width * 0.003);
-
-		$gameOverText.setAttribute('style',
-				'font-size:' + width * 0.1 +
-				"; -webkit-text-stroke-width:" + width * 0.003);
-
-		$playAgainText.setAttribute('style',
-				'font-size:' + width * 0.05);
-	};
-
-	var draw = function() {
-		log("first frame");
-
-		// Redefine draw after the first frame.
-		draw = function() {
-			if (titleScreen && started) {
-				$titleScreen.setAttribute('class', 'title-screen fade out');
-				$socialStuff.setAttribute('class', 'social-stuff like-button-area fade out');
-				titleScreen = false;
-			}
-
-			var segmentLength = backgroundImageWidth / backgroundImageHeight;
-			var segmentValue = spritePositionX / segmentLength;
-			var residue = segmentValue - Math.floor(segmentValue);
-			var segmentScreenWidth = height / backgroundImageHeight * backgroundImageWidth;
-			var segmentsNeeded = Math.ceil(width / segmentScreenWidth);
-
-			if (loadedBackground) {
-				for (var i = -segmentsNeeded / 2; i < segmentsNeeded / 2 + 1.5; i++) {
-					ctx.drawImage(backgroundImage, (i - residue) * segmentScreenWidth + spriteScreenX, 0, segmentScreenWidth + 1, height);
-				}
-			}
-
-			ctx.save();
-			var rotX = spriteScreenX + spriteScreenSizeX / 2;
-			var rotY = spriteScreenY + spriteScreenSizeY / 2;
-			ctx.translate(rotX, rotY);
-			ctx.rotate(Math.atan(-spriteVelocityY) * (started ? .7 : 2));
-			ctx.translate(-rotX, -rotY);
-			ctx.drawImage(spriteImage, spriteScreenX, spriteScreenY, spriteScreenSizeX, spriteScreenSizeY);
-			ctx.restore();
-
-			obstacleScreenSizeX = obstacleSizeX * height;
-			obstacleScreenSizeY = obstacleScreenSizeX / obstacleImageWidth * obstacleImageHeight;
-
-			if (loadedDownImage && loadedUpImage) {
-				for (var i = 0; i < OBSTACLE_POOL_SIZE; i++) {
-					var entry = obstacles[i];
-					if (entry[4] === 0) {
-						continue;
-					}
-					var x = entry[0];
-					var y = entry[1];
-					var dy = entry[2];
-
-					ctx.drawImage(obstacleDownImage, (x - spritePositionX - obstacleSizeX / 2) * height + spriteScreenRelativeLocation * width, (1 - (y - dy / 2)) * height, obstacleScreenSizeX, obstacleScreenSizeY);
-					ctx.drawImage(obstacleUpImage, (x - spritePositionX - obstacleSizeX / 2) * height + spriteScreenRelativeLocation * width, (1 - (y + dy / 2)) * height - obstacleScreenSizeY, obstacleScreenSizeX, obstacleScreenSizeY);
-				}
-			}
-		};
-		draw();
-	};
-
-	var updateState = function(dT) {
-		if(started) {
-			spritePositionY += (spriteVelocityY * dT + 0.5 * g * dT * dT);
-			spriteVelocityY += g * dT;
-		} else {
-			spritePositionY += spriteVelocityY * dT;
-			spriteVelocityY = 0.05 * Math.cos(lastT * 2);
-		}
-
-		spritePositionX += spriteVelocityX * dT;
-
-		// if(spritePositionY < spriteSizeY * 0.5)
-		// 	spritePositionY = spriteSizeY * 0.5;
-
-		spriteScreenX = spriteScreenRelativeLocation * width - 0.5 * spriteScreenSizeX;
-		spriteScreenY = (1-spritePositionY) * height - 0.5 * spriteScreenSizeY;
-	};
-
-	var updateObstacles = function() {
-		if(!started) {
-			return;
-		}
-
-		for (var i = 0; i < OBSTACLE_POOL_SIZE; i++) {
-			var entry = obstacles[i];
-			if (entry[4] === 0) {
-				continue;
-			}
-			var x = entry[0];
-			if(x < spritePositionX-worldWidth ) {
-				releaseObstacle();
-			}
-		}
-
-		if(lastObstacle[4] === 0 || lastObstacle[0] < spritePositionX + worldWidth + obstacleDistance) {
-			if(lastObstacle[4] === 0) {
-				claimObstacle(spritePositionX + worldWidth/2 + obstacleDistance, nextHeight(), nextAperture(), 0);
-			} else {
-				claimObstacle(lastObstacle[0] + obstacleDistance, nextHeight(), nextAperture(), 0)
-			}
-		}
-	};
-
-	var initObstacles = function() {
-		for (var i = 0; i < OBSTACLE_POOL_SIZE; i++) {
-			obstacles[i] = [0, 0, 0, 0, 0];
-		}
-		// Setup lastObstacle.
-		claimObstacle(0, 0, 0, 0);
-		releaseObstacle();
-	};
-
-	var resetObstacles = function() {
-		while (releaseIndex != claimIndex) {
-			releaseObstacle();
-		}
-	};
-
-	var claimObstacle = function (x, y, aperture, passed) {
-		/* Make sure the whole array is of the same type so that native array types can be used. */
-
-		var obstacle = obstacles[claimIndex++];
-		claimIndex %= OBSTACLE_POOL_SIZE;
-		obstacle[0] = x;
-		obstacle[1] = y;
-		obstacle[2] = aperture;
-		obstacle[3] = passed;
-		obstacle[4] = 1;
-		lastObstacle = obstacle;
-		return obstacle;
-	};
-
-	var releaseObstacle = function () {
-		obstacles[releaseIndex++][4] = 0;
-		releaseIndex %= OBSTACLE_POOL_SIZE;
-	};
-
-	var APERTURE = 0.3;
-	var lastHeight = -1;
-
-	var nextHeight = function() {
-		var candidate = aHeight();
-
-		while(Math.abs(candidate - lastHeight) < 0.3) {
-			candidate = aHeight();
-		}
-
-		lastHeight = candidate;
-		return candidate;
-	};
-
-	var aHeight = function() {
-		var base = 0.05 + APERTURE / 2;
-		var variation = 1 - 0.05 - APERTURE / 2 - base;
-		return variation * Math.random() + base;
-	};
-
-	var nextAperture = function() {
-		return APERTURE;
-	};
-
-	var collisionDetection = function () {
-		var spriteFactor = 0.7;
-		var spriteFactorY = 0.5;
-
-		if (spritePositionY < spriteSizeY * 0.5) {
-			gameover = true;
-			return;
-		}
-
-		for (var i = 0; i < OBSTACLE_POOL_SIZE; i++) {
-			var entry = obstacles[i];
-			if (entry[4] === 0) {
-				continue;
-			}
-			var x = entry[0];
-			var spriteLeft = spritePositionX - spriteSizeX / 2 * spriteFactor;
-			var spriteRight = spritePositionX + spriteSizeX / 2 * spriteFactor;
-			var spriteTop = spritePositionY + spriteSizeX / 2 * spriteFactorY;
-			var spriteBottom = spritePositionY - spriteSizeX / 2 * spriteFactorY;
-			var obstacleLeft = x - obstacleSizeX / 2;
-			var obstacleRight = x + obstacleSizeX / 2;
-			if (
-					spriteLeft >= obstacleLeft && spriteLeft <= obstacleRight ||
-					spriteRight >= obstacleLeft && spriteRight <= obstacleRight
-			) {
-				var height = entry[1];
-				var aperture = entry[2];
-
-				var apertureTop = height + aperture / 2;
-				var apertureBottom = height - aperture / 2;
-
-				if (spriteTop >= apertureTop || spriteBottom <= apertureBottom) {
-					gameover = true;
-				}
-
-
-			}
-			if (!gameover) {
-				if (spriteLeft > obstacleRight) {
-					if (entry[3] === 0) {
-						setScore(score + 10);
-						entry[3] = 1;
-					}
-				}
-			}
-		}
-	};
-
-	var setScore = function(value) {
-		score = value;
-		requestAnimationFrame(function() {
-			$scoreText.textContent = score;
-		});
-	};
-
-	var drawGameOver = function () {
-		if (!gameOverDisplayed) {
-			gameOverDisplayed = true;
-
-			requestAnimationFrame(function () {
-				$gameOver.setAttribute('class', 'game-over fade');
-				$gameCanvas.setAttribute('class', 'game-canvas noselect game-over-color');
-
-				setTimeout(function () {
-					readyToRestart = true;
-					log("readyToRestart");
-
-					requestAnimationFrame(function () {
-						$playAgainText.setAttribute('class', 'play-again-text fade');
-						$socialStuff.setAttribute('class', 'social-stuff like-button-area fade');
-					});
-				}, 1000)
-			});
-		}
-	};
-
-	var resetGame = function() {
-		initGame();
-
-		requestAnimationFrame(function() {
-			$playAgainText.setAttribute('class', 'play-again-text fade out');
-			$gameOver.setAttribute('class', 'game-over fade out');
-			$gameCanvas.setAttribute('class', 'game-canvas noselect');
-		});
-	};
-
-	var helloMessage = function() {
-		log("Hello!  Welcome to the hidden room!  Are you a hacker?", true);
-		log("This whole world was created just for you to find this.", true);
-		log("Want to write code to help millions of users save #SomeMoney?", true);
-		log("Email us at careers@rmn.com!", true);
-		log("Sincerely,", true);
-		log("The Hackers of FiveOClock.", true);
-	};
-
-	var log = function(o, override) {
-		if(debug || override === true) {
-			console.log(o);
-		}
-	};
-
-	var isTouchDevice = function() {
-		try {
-			document.createEvent("TouchEvent");
-			return true;
-		} catch (e) {
-			return false;
-		}
-	};
-
-	init();
+  var debug = false;
+
+  var $titleScreen = document.getElementById('title-screen');
+  var $gameOverText = document.getElementById('game-over-text');
+  var $playAgainText = document.getElementById('play-again-text');
+  var $socialStuff = document.getElementById('social-stuff');
+  var $scoreText = document.getElementById('score-text');
+  var $gameOver = document.getElementById('game-over');
+  var $gameCanvas = document.getElementById('game-canvas');
+
+  var canvas = document.getElementById("game-canvas");
+  var ctx = canvas.getContext("2d");
+
+  var spriteImage = new Image();
+  var backgroundImage = new Image();
+  var obstacleDownImage = new Image();
+  var obstacleUpImage = new Image();
+  var backgroundImageWidth;
+  var backgroundImageHeight;
+  var obstacleImageWidth;
+  var obstacleImageHeight;
+
+  var loadedBackground = false;
+  var loadedDownImage = false;
+  var loadedUpImage = false;
+
+  var spriteScreenRelativeLocation = 0.3;
+
+  var allowMouseEvents = true;
+
+  backgroundImage.onload = function () {
+    backgroundImageWidth = backgroundImage.naturalWidth;
+    backgroundImageHeight = backgroundImage.naturalHeight;
+    loadedBackground = true;
+
+    // Pre-render the lowered alpha of the background image to avoid needing to do the transformation on each tick.
+    var offscreenCanvas = document.createElement('canvas');
+    offscreenCanvas.width = backgroundImageWidth;
+    offscreenCanvas.height = backgroundImageHeight;
+    var offscreenContext = offscreenCanvas.getContext('2d');
+    offscreenContext.fillStyle = "#0080a3";
+    offscreenContext.fillRect(0, 0, backgroundImageWidth, backgroundImageHeight);
+    offscreenContext.globalAlpha = 0.2;
+    offscreenContext.drawImage(backgroundImage, 0, 0, backgroundImageWidth, backgroundImageHeight);
+    offscreenContext.globalAlpha = 1;
+    backgroundImage = offscreenCanvas;
+
+    log("loaded background");
+  };
+
+  obstacleDownImage.onload = function () {
+    obstacleImageWidth = obstacleDownImage.naturalWidth;
+    obstacleImageHeight = obstacleDownImage.naturalHeight;
+    loadedDownImage = true;
+    log("loaded down image");
+  };
+
+  obstacleUpImage.onload = function () {
+    obstacleImageWidth = obstacleDownImage.naturalWidth;
+    obstacleImageHeight = obstacleDownImage.naturalHeight;
+    loadedUpImage = true;
+    log("loaded up image");
+  };
+
+  spriteImage.src = "img/sprite.png";
+  backgroundImage.src = "img/background.jpg";
+  obstacleDownImage.src = "img/obstacle-down.png";
+  obstacleUpImage.src = "img/obstacle-up.png";
+
+  var g = -4;
+  var impulse = 1.1;
+
+  var spritePositionX = 0;
+  var spritePositionY = 0.7;
+  var spriteVelocityX = 0.3;
+  var spriteVelocityY = 0;
+  var spriteSizeX = .1;
+  var spriteSizeY = .1;
+
+  var obstacleDistance = 0.5;
+  var obstacleSizeX = 0.15;
+  var obstacleScreenSizeX;
+  var obstacleScreenSizeY;
+
+  var lastT;
+
+  var spriteScreenX, spriteScreenY, worldX;
+  var spriteScreenSizeX, spriteScreenSizeY;
+
+  var score;
+
+  var started = false;
+  var gameover = false;
+  var gameOverDisplayed = false;
+  var titleScreen = true;
+  var readyToRestart = false;
+
+  // By reusing obstacle definitions, we avoid garbage collection for these arrays that can be re-used anyway.
+  var OBSTACLE_POOL_SIZE = 8;
+  var claimIndex = 0;
+  var releaseIndex = 0;
+  var lastObstacle;
+  var obstacles = []; // position, altitude, width;
+
+  var width, height, worldWidth;
+
+  var initGame = function () {
+    spritePositionX = 0;
+    spritePositionY = 0.7;
+    spriteVelocityX = 0.3;
+    spriteVelocityY = 0;
+
+    started = false;
+    gameover = false;
+    gameOverDisplayed = false;
+    titleScreen = true;
+    readyToRestart = false;
+
+    setScore(0);
+
+    resetObstacles();
+  };
+
+  var initPage = function () {
+    document.oncontextmenu = function () {
+      return false;
+    };
+    canvas.oncontextmenu = function () {
+      return false;
+    };
+    allowMouseEvents = !isTouchDevice();
+    lastT = new Date().getTime() / 1000.0;
+  };
+
+  var init = function () {
+    helloMessage();
+    initPage();
+    initObstacles();
+    initGame();
+    registerEventHandlers();
+    resizeCanvas();
+    initializeAndStartTimer();
+  };
+
+  var initializeAndStartTimer = function () {
+    requestAnimationFrame(heartbeat);
+  };
+
+  var handleAction = function () {
+    if (readyToRestart) {
+      resetGame();
+    } else {
+      if (!gameover)
+        flap();
+    }
+  };
+
+  var registerEventHandlers = function () {
+    document.addEventListener('keydown', function (event) {
+      log("keydown");
+      handleAction();
+    }, false);
+    document.addEventListener('mousedown', function (event) {
+      if (allowMouseEvents) {
+        log("mousedown");
+        handleAction();
+      }
+    }, false);
+    document.addEventListener('touchstart', function (e) {
+      log("touchstart");
+      handleAction();
+    }, false);
+
+    window.addEventListener('load', resizeCanvas, false);
+    window.addEventListener('resize', resizeCanvas, false);
+    window.addEventListener('orientationchange', resizeCanvas, false);
+  };
+
+  var flap = function () {
+    started = true;
+    spriteVelocityY = impulse;
+  };
+
+  var heartbeat = function (time) {
+    requestAnimationFrame(heartbeat);
+
+    var newT = time / 1000.0;
+    var dT = newT - lastT;
+    lastT = newT;
+
+    if (!gameover) {
+      updateState(dT);
+      updateObstacles();
+      collisionDetection();
+    }
+
+    draw();
+
+    if (gameover)
+      drawGameOver();
+  };
+
+  var resizeCanvas = function () {
+    if (ctx.canvas.width != window.innerWidth || ctx.canvas.height != window.innerHeight) {
+      width = window.innerWidth;
+      height = window.innerHeight;
+      ctx.canvas.width = width;
+      ctx.canvas.height = height;
+
+      spriteScreenSizeX = spriteSizeX * height; // use height to define size.
+      spriteScreenSizeY = spriteSizeY * height;
+
+      worldWidth = width / height;
+    }
+
+    $titleScreen.setAttribute('style',
+      'font-size:' + width * 0.1 +
+      "; -webkit-text-stroke-width:" + width * 0.003);
+
+    $gameOverText.setAttribute('style',
+      'font-size:' + width * 0.1 +
+      "; -webkit-text-stroke-width:" + width * 0.003);
+
+    $playAgainText.setAttribute('style',
+      'font-size:' + width * 0.05);
+  };
+
+  var draw = function () {
+    log("first frame");
+
+    // Redefine draw after the first frame.
+    draw = function () {
+      if (titleScreen && started) {
+        $titleScreen.setAttribute('class', 'title-screen fade out');
+        $socialStuff.setAttribute('class', 'social-stuff like-button-area fade out');
+        titleScreen = false;
+      }
+
+      var segmentLength = backgroundImageWidth / backgroundImageHeight;
+      var segmentValue = spritePositionX / segmentLength;
+      var residue = segmentValue - Math.floor(segmentValue);
+      var segmentScreenWidth = height / backgroundImageHeight * backgroundImageWidth;
+      var segmentsNeeded = Math.ceil(width / segmentScreenWidth);
+
+      if (loadedBackground) {
+        for (var i = -segmentsNeeded / 2; i < segmentsNeeded / 2 + 1.5; i++) {
+          ctx.drawImage(backgroundImage, (i - residue) * segmentScreenWidth + spriteScreenX, 0, segmentScreenWidth + 1, height);
+        }
+      }
+
+      ctx.save();
+      var rotX = spriteScreenX + spriteScreenSizeX / 2;
+      var rotY = spriteScreenY + spriteScreenSizeY / 2;
+      ctx.translate(rotX, rotY);
+      ctx.rotate(Math.atan(-spriteVelocityY) * (started ? .7 : 2));
+      ctx.translate(-rotX, -rotY);
+      ctx.drawImage(spriteImage, spriteScreenX, spriteScreenY, spriteScreenSizeX, spriteScreenSizeY);
+      ctx.restore();
+
+      obstacleScreenSizeX = obstacleSizeX * height;
+      obstacleScreenSizeY = obstacleScreenSizeX / obstacleImageWidth * obstacleImageHeight;
+
+      if (loadedDownImage && loadedUpImage) {
+        for (var i = 0; i < OBSTACLE_POOL_SIZE; i++) {
+          var entry = obstacles[i];
+          if (entry[4] === 0) {
+            continue;
+          }
+          var x = entry[0];
+          var y = entry[1];
+          var dy = entry[2];
+
+          ctx.drawImage(obstacleDownImage, (x - spritePositionX - obstacleSizeX / 2) * height + spriteScreenRelativeLocation * width, (1 - (y - dy / 2)) * height, obstacleScreenSizeX, obstacleScreenSizeY);
+          ctx.drawImage(obstacleUpImage, (x - spritePositionX - obstacleSizeX / 2) * height + spriteScreenRelativeLocation * width, (1 - (y + dy / 2)) * height - obstacleScreenSizeY, obstacleScreenSizeX, obstacleScreenSizeY);
+        }
+      }
+    };
+    draw();
+  };
+
+  var updateState = function (dT) {
+    if (started) {
+      spritePositionY += (spriteVelocityY * dT + 0.5 * g * dT * dT);
+      spriteVelocityY += g * dT;
+    } else {
+      spritePositionY += spriteVelocityY * dT;
+      spriteVelocityY = 0.05 * Math.cos(lastT * 2);
+    }
+
+    spritePositionX += spriteVelocityX * dT;
+
+    spriteScreenX = spriteScreenRelativeLocation * width - 0.5 * spriteScreenSizeX;
+    spriteScreenY = (1 - spritePositionY) * height - 0.5 * spriteScreenSizeY;
+  };
+
+  var updateObstacles = function () {
+    if (!started) {
+      return;
+    }
+
+    for (var i = 0; i < OBSTACLE_POOL_SIZE; i++) {
+      var entry = obstacles[i];
+      if (entry[4] === 0) {
+        continue;
+      }
+      var x = entry[0];
+      if (x < spritePositionX - worldWidth) {
+        releaseObstacle();
+      }
+    }
+
+    if (lastObstacle[4] === 0 || lastObstacle[0] < spritePositionX + worldWidth + obstacleDistance) {
+      if (lastObstacle[4] === 0) {
+        claimObstacle(spritePositionX + worldWidth / 2 + obstacleDistance, nextHeight(), nextAperture(), 0);
+      } else {
+        claimObstacle(lastObstacle[0] + obstacleDistance, nextHeight(), nextAperture(), 0)
+      }
+    }
+  };
+
+  var initObstacles = function () {
+    for (var i = 0; i < OBSTACLE_POOL_SIZE; i++) {
+      obstacles[i] = [0, 0, 0, 0, 0];
+    }
+    // Setup lastObstacle.
+    claimObstacle(0, 0, 0, 0);
+    releaseObstacle();
+  };
+
+  var resetObstacles = function () {
+    while (releaseIndex != claimIndex) {
+      releaseObstacle();
+    }
+  };
+
+  var claimObstacle = function (x, y, aperture, passed) {
+    /* Make sure the whole array is of the same type so that native array types can be used. */
+
+    var obstacle = obstacles[claimIndex++];
+    claimIndex %= OBSTACLE_POOL_SIZE;
+    obstacle[0] = x;
+    obstacle[1] = y;
+    obstacle[2] = aperture;
+    obstacle[3] = passed;
+    obstacle[4] = 1;
+    lastObstacle = obstacle;
+    return obstacle;
+  };
+
+  var releaseObstacle = function () {
+    obstacles[releaseIndex++][4] = 0;
+    releaseIndex %= OBSTACLE_POOL_SIZE;
+  };
+
+  var APERTURE = 0.3;
+  var lastHeight = -1;
+
+  var nextHeight = function () {
+    var candidate = aHeight();
+
+    while (Math.abs(candidate - lastHeight) < 0.3) {
+      candidate = aHeight();
+    }
+
+    lastHeight = candidate;
+    return candidate;
+  };
+
+  var aHeight = function () {
+    var base = 0.05 + APERTURE / 2;
+    var variation = 1 - 0.05 - APERTURE / 2 - base;
+    return variation * Math.random() + base;
+  };
+
+  var nextAperture = function () {
+    return APERTURE;
+  };
+
+  var collisionDetection = function () {
+    var spriteFactor = 0.7;
+    var spriteFactorY = 0.5;
+
+    if (spritePositionY < spriteSizeY * 0.5) {
+      gameover = true;
+      return;
+    }
+
+    for (var i = 0; i < OBSTACLE_POOL_SIZE; i++) {
+      var entry = obstacles[i];
+      if (entry[4] === 0) {
+        continue;
+      }
+      var x = entry[0];
+      var spriteLeft = spritePositionX - spriteSizeX / 2 * spriteFactor;
+      var spriteRight = spritePositionX + spriteSizeX / 2 * spriteFactor;
+      var spriteTop = spritePositionY + spriteSizeX / 2 * spriteFactorY;
+      var spriteBottom = spritePositionY - spriteSizeX / 2 * spriteFactorY;
+      var obstacleLeft = x - obstacleSizeX / 2;
+      var obstacleRight = x + obstacleSizeX / 2;
+      if (
+        spriteLeft >= obstacleLeft && spriteLeft <= obstacleRight ||
+        spriteRight >= obstacleLeft && spriteRight <= obstacleRight
+      ) {
+        var height = entry[1];
+        var aperture = entry[2];
+
+        var apertureTop = height + aperture / 2;
+        var apertureBottom = height - aperture / 2;
+
+        if (spriteTop >= apertureTop || spriteBottom <= apertureBottom) {
+          gameover = true;
+        }
+
+
+      }
+      if (!gameover) {
+        if (spriteLeft > obstacleRight) {
+          if (entry[3] === 0) {
+            setScore(score + 10);
+            entry[3] = 1;
+          }
+        }
+      }
+    }
+  };
+
+  var setScore = function (value) {
+    score = value;
+    requestAnimationFrame(function () {
+      $scoreText.textContent = score;
+    });
+  };
+
+  var drawGameOver = function () {
+    if (!gameOverDisplayed) {
+      gameOverDisplayed = true;
+
+      requestAnimationFrame(function () {
+        $gameOver.setAttribute('class', 'game-over fade');
+        $gameCanvas.setAttribute('class', 'game-canvas noselect game-over-color');
+
+        setTimeout(function () {
+          readyToRestart = true;
+          log("readyToRestart");
+
+          requestAnimationFrame(function () {
+            $playAgainText.setAttribute('class', 'play-again-text fade');
+            $socialStuff.setAttribute('class', 'social-stuff like-button-area fade');
+          });
+        }, 1000)
+      });
+    }
+  };
+
+  var resetGame = function () {
+    initGame();
+
+    requestAnimationFrame(function () {
+      $playAgainText.setAttribute('class', 'play-again-text fade out');
+      $gameOver.setAttribute('class', 'game-over fade out');
+      $gameCanvas.setAttribute('class', 'game-canvas noselect');
+    });
+  };
+
+  var helloMessage = function () {
+    log("Hello!  Welcome to the hidden room!  Are you a hacker?", true);
+    log("This whole world was created just for you to find this.", true);
+    log("Want to write code to help millions of users save #SomeMoney?", true);
+    log("Email us at careers@rmn.com!", true);
+    log("Sincerely,", true);
+    log("The Hackers of FiveOClock.", true);
+  };
+
+  var log = function (o, override) {
+    if (debug || override === true) {
+      console.log(o);
+    }
+  };
+
+  var isTouchDevice = function () {
+    try {
+      document.createEvent("TouchEvent");
+      return true;
+    } catch (e) {
+      return false;
+    }
+  };
+
+  init();
 
 </script>
 
