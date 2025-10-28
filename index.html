@@ -92,30 +92,6 @@
             opacity: 0.0;
         }
 
-        .like-button-area {
-            position: fixed;
-            left: 3em;
-            top: 90%;
-        }
-
-        .social-stuff {
-
-        }
-
-        .fb_iframe_widget iframe {
-            transform: scale(2) rotate(-90deg);
-            -ms-transform: scale(2) rotate(-90deg);
-            -webkit-transform: scale(2) rotate(-90deg);
-            -o-transform: scale(2) rotate(-90deg);
-            -moz-transform: scale(2) rotate(-90deg);
-
-            transform-origin: bottom left;
-            -ms-transform-origin: bottom left;
-            -webkit-transform-origin: bottom left;
-            -moz-transform-origin: bottom left;
-            -webkit-transform-origin: bottom left;
-        }
-
         .game-over-color {
             background: purple;
         }
@@ -134,48 +110,12 @@
 <div id="score-text" class="score-text" style="">0</div>
 
 <script>
-  window.fbAsyncInit = function () {
-    FB.init({
-      appId: '477798752368945',
-      xfbml: true,
-      version: 'v2.3'
-    });
-  };
-
-  (function (d, s, id) {
-    var js, fjs = d.getElementsByTagName(s)[0];
-    if (d.getElementById(id)) {
-      return;
-    }
-    js = d.createElement(s);
-    js.id = id;
-    js.src = "//connect.facebook.net/en_US/sdk.js";
-    fjs.parentNode.insertBefore(js, fjs);
-  }(document, 'script', 'facebook-jssdk'));
-</script>
-
-<div id="social-stuff" class="like-button-area social-stuff fade">
-    <div id="fb-root"></div>
-    <script>(function (d, s, id) {
-      var js, fjs = d.getElementsByTagName(s)[0];
-      if (d.getElementById(id)) return;
-      js = d.createElement(s);
-      js.id = id;
-      js.src = "//connect.facebook.net/en_US/sdk.js#xfbml=1&version=v2.3&appId=477798752368945";
-      fjs.parentNode.insertBefore(js, fjs);
-    }(document, 'script', 'facebook-jssdk'));</script>
-    <div class="fb-like" data-href="http://sharky.co" data-width="400" data-layout="button_count" data-action="like"
-         data-show-faces="true" data-share="true"></div>
-</div>
-
-<script>
 
   var debug = false;
 
   var $titleScreen = document.getElementById('title-screen');
   var $gameOverText = document.getElementById('game-over-text');
   var $playAgainText = document.getElementById('play-again-text');
-  var $socialStuff = document.getElementById('social-stuff');
   var $scoreText = document.getElementById('score-text');
   var $gameOver = document.getElementById('game-over');
   var $gameCanvas = document.getElementById('game-canvas');
@@ -404,7 +344,6 @@
     draw = function () {
       if (titleScreen && started) {
         $titleScreen.setAttribute('class', 'title-screen fade out');
-        $socialStuff.setAttribute('class', 'social-stuff like-button-area fade out');
         titleScreen = false;
       }
 
@@ -565,8 +504,8 @@
       var x = entry[0];
       var spriteLeft = spritePositionX - spriteSizeX / 2 * spriteFactor;
       var spriteRight = spritePositionX + spriteSizeX / 2 * spriteFactor;
-      var spriteTop = spritePositionY + spriteSizeX / 2 * spriteFactorY;
-      var spriteBottom = spritePositionY - spriteSizeX / 2 * spriteFactorY;
+      var spriteTop = spritePositionY + spriteSizeY / 2 * spriteFactorY;
+      var spriteBottom = spritePositionY - spriteSizeY / 2 * spriteFactorY;
       var obstacleLeft = x - obstacleSizeX / 2;
       var obstacleRight = x + obstacleSizeX / 2;
       if (
@@ -617,7 +556,6 @@
 
           requestAnimationFrame(function () {
             $playAgainText.setAttribute('class', 'play-again-text fade');
-            $socialStuff.setAttribute('class', 'social-stuff like-button-area fade');
           });
         }, 1000)
       });
